@@ -1,1 +1,3 @@
-
+import {json,requireDb} from '../../_utils.js';import {isAdmin,adminRequired} from '../../_admin.js';
+export async function onRequestPatch({request,env,params}){if(!await isAdmin(request,env))return adminRequired();try{requireDb(env);let b={};try{b=await request.json()}catch{}const status=b.status==='hidden'?'hidden':'visible';await env.DB.prepare('UPDATE community_messages SET status=? WHERE id=?').bind(status,params.id).run();return json({ok:true,status})}catch(e){return json({error:'تغییر پیام انجام نشد.'},503)}}
+export async function onRequestDelete({request,env,params}){if(!await isAdmin(request,env))return adminRequired();try{requireDb(env);await env.DB.prepare('DELETE FROM community_messages WHERE id=?').bind(params.id).run();return json({ok:true})}catch(e){return json({error:'حذف پیام انجام نشد.'},503)}}
