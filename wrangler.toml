@@ -1,0 +1,13 @@
+name = "daneshjuyan"
+compatibility_date = "2026-10-10"
+pages_build_output_dir = "./public"
+
+# After creating Cloudflare resources, uncomment and fill in the IDs below.
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "daneshjuyan-db"
+# database_id = "PUT_YOUR_D1_DATABASE_ID_HERE"
+#
+# [[r2_buckets]]
+# binding = "FILES"
+# bucket_name = "daneshjuyan-files"
