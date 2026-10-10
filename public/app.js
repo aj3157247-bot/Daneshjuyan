@@ -49,7 +49,15 @@ $('#joinForm').addEventListener('submit', async e => {
 async function openContent(item) {
   currentItem = item; const isPage = item.kind === 'page'; const dlg = $('#contentDialog'); dlg.dataset.kind = item.kind; dlg.classList.toggle('page-view', isPage); dlg.classList.toggle('group-view', !isPage); $('#contentType').textContent = isPage ? 'صفحه درسی' : 'گروه صنفی'; $('#contentTitle').textContent = item.title; $('#contentMeta').textContent = `${item.university} • ${item.field} • ${item.semester} • نوبت ${item.shift}`; $('#activeSemester').value = '1'; notes = []; messages = []; assets = {files:[],photos:[]}; renderNotes(); renderMessages(); renderAssets();
   $('#panel-overview h3').textContent = isPage ? 'به صفحه صنف خوش آمدی' : 'به گروه صنف خوش آمدی'; $('#panel-overview > p').textContent = isPage ? 'نوت‌ها، منابع، عکس‌ها و اطلاعیه‌های این صنف را در یک صفحه دنبال کن.' : 'برای هماهنگی با هم‌صنفی‌ها گفتگو کن، فایل بفرست و خاطرات گروه را نگه‌دار.'; $('#panel-overview .private-banner').textContent = isPage ? '📚 صفحه اختصاصی صنف؛ منابع درسی و پست‌ها به تفکیک سمستر' : '👥 گروه خصوصی صنف؛ گفتگو و هماهنگی اعضا';
-  $$('[data-panel=overview]').forEach(b => b.textContent = isPage ? 'درباره صفحه' : 'نمای کلی'); $$('[data-panel=notes]').forEach(b => b.textContent = isPage ? 'نوت‌های درسی' : 'نوت‌ها'); $$('[data-panel=files]').forEach(b => b.textContent = 'فایل‌ها'); $$('[data-panel=photos]').forEach(b => b.textContent = isPage ? 'عکس‌ها' : 'خاطرات'); $$('[data-panel=chat]').forEach(b => b.textContent = isPage ? '📰 پست‌ها' : '💬 گفتگو'); $('#panel-chat h3').textContent = isPage ? 'پست‌ها و اطلاعیه‌های صفحه' : 'گفتگوی اعضا'; $('#chatMessage').placeholder = isPage ? 'اطلاعیه یا مطلب درسی خود را بنویس…' : 'پیامی برای هم‌صنفی‌ها بنویس…'; $('#chatForm button[type=submit]').textContent = isPage ? 'انتشار پست' : 'ارسال پیام'; $('#panel-chat .form-hint').textContent = isPage ? 'پست‌ها برای اعضای واردشده در این صفحه نمایش داده می‌شوند.' : 'پیام‌های گروه برای اعضای واردشده نمایش داده می‌شوند.'; showPanel(isPage ? 'chat' : 'overview'); dlg.showModal();
+  $$('[data-panel=overview]').forEach(b => b.textContent = isPage ? 'درباره صفحه' : 'نمای کلی'); $$('[data-panel=notes]').forEach(b => b.textContent = isPage ? 'نوت‌های درسی' : 'نوت‌ها'); $$('[data-panel=files]').forEach(b => b.textContent = 'فایل‌ها'); $$('[data-panel=photos]').forEach(b => b.textContent = isPage ? 'عکس‌ها' : 'خاطرات'); $$('[data-panel=chat]').forEach(b => b.textContent = isPage ? '📰 پست‌ها' : '💬 گفتگو'); $('#panel-chat h3').textContent = isPage ? 'پست‌ها و اطلاعیه‌های صفحه' : 'گفتگوی اعضا'; $('#chatMessage').placeholder = isPage ? 'اطلاعیه یا مطلب درسی خود را بنویس…' : 'پیامی برای هم‌صنفی‌ها بنویس…'; $('#chatForm button[type=submit]').textContent = isPage ? 'انتشار پست' : 'ارسال پیام'; $('#panel-chat .form-hint').textContent = isPage ? 'پست‌ها برای اعضای واردشده در این صفحه نمایش داده می‌شوند.' : 'پیام‌های گروه برای اعضای واردشده نمایش داده می‌شوند.'; dlg.querySelector('.inside-tabs').hidden = !isPage;
+  $('#activeSemester').closest('.semester-picker').hidden = !isPage;
+  $('#panel-overview').hidden = !isPage;
+  $('#panel-notes').hidden = !isPage;
+  $('#panel-files').hidden = !isPage;
+  $('#panel-photos').hidden = !isPage;
+  $('#panel-chat').hidden = false;
+  showPanel(isPage ? 'chat' : 'chat');
+  dlg.showModal();
   try { await api(`/api/spaces/${encodeURIComponent(item.id)}/content`); await loadSemesterContent(); const m = await api(`/api/spaces/${encodeURIComponent(item.id)}/messages`); messages = m.messages || []; renderMessages(); }
   catch (err) { status('محتوا بارگذاری نشد: ' + err.message); }
 }
@@ -73,7 +81,12 @@ function renderNotes() {
   $$('[data-copy-note]').forEach(b => b.addEventListener('click', async () => { const n = notes.find(x => x.id === b.dataset.copyNote); try { await navigator.clipboard.writeText(n?.body || ''); alert('نوت کپی شد.'); } catch { alert('کپی خودکار ممکن نشد؛ متن را انتخاب و کپی کن.'); } }));
 }
 $('#chatForm').addEventListener('submit', async e => { e.preventDefault(); try { const body = $('#chatMessage').value.trim(); const d = await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/messages`, {method:'POST', body:JSON.stringify({body})}); messages.push(d.message); $('#chatMessage').value = ''; renderMessages(); } catch (err) { status('پیام ارسال نشد: ' + err.message); } });
-function renderMessages() { $('#chatList').innerHTML = messages.map(m => `<article class="message-card"><p>${escapeHtml(m.body)}</p><small>${escapeHtml(m.createdAt || '')}</small></article>`).join('') || '<p>هنوز پیامی فرستاده نشده است.</p>'; }
+function formatMessageTime(value) { if (!value) return ''; const d = new Date(value); return Number.isNaN(d.getTime()) ? String(value) : new Intl.DateTimeFormat('fa-AF', {hour:'2-digit', minute:'2-digit', day:'numeric', month:'short'}).format(d); }
+function renderMessages() {
+  const list = $('#chatList');
+  list.innerHTML = messages.map((m, i) => `<article class="message-card chat-bubble ${m.authorId && m.authorId === window.currentStudentId ? 'own-message' : ''}"><b class="message-author">${escapeHtml(m.authorName || 'عضو دانشجویان')}</b><p>${escapeHtml(m.body)}</p><small>${escapeHtml(formatMessageTime(m.createdAt))}</small></article>`).join('') || '<div class="chat-empty"><span>💬</span><b>هنوز گفتگویی شروع نشده</b><p>اولین پیام را برای هم‌صنفی‌ها بفرست.</p></div>';
+  list.scrollTop = list.scrollHeight;
+}
 async function uploadAsset(form, type) {
   if (!currentItem) return; const input = form.querySelector('input[type=file]'); if (!input.files?.[0]) return;
   const fd = new FormData(); fd.append('file', input.files[0]); fd.append('type', type); fd.append('semester', String(activeSemester()));
