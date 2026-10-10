@@ -195,3 +195,54 @@ CREATE TABLE IF NOT EXISTS space_notes (id TEXT PRIMARY KEY, space_id TEXT NOT N
 CREATE INDEX IF NOT EXISTS idx_space_notes_space ON space_notes(space_id, created_at DESC);
 CREATE TABLE IF NOT EXISTS space_messages (id TEXT PRIMARY KEY, space_id TEXT NOT NULL REFERENCES spaces(id) ON DELETE CASCADE, body TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
 CREATE INDEX IF NOT EXISTS idx_space_messages_space ON space_messages(space_id, created_at DESC);
+
+-- Features for the integrated student platform (safe to run repeatedly).
+CREATE TABLE IF NOT EXISTS space_files (
+  id TEXT PRIMARY KEY,
+  space_id TEXT NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
+  semester_number INTEGER NOT NULL CHECK (semester_number BETWEEN 1 AND 8),
+  title TEXT NOT NULL,
+  object_key TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  mime_type TEXT NOT NULL,
+  file_size INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX IF NOT EXISTS idx_space_files_space_semester ON space_files(space_id, semester_number, created_at DESC);
+CREATE TABLE IF NOT EXISTS space_photos (
+  id TEXT PRIMARY KEY,
+  space_id TEXT NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
+  semester_number INTEGER NOT NULL CHECK (semester_number BETWEEN 1 AND 8),
+  caption TEXT NOT NULL DEFAULT '',
+  object_key TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  mime_type TEXT NOT NULL,
+  file_size INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX IF NOT EXISTS idx_space_photos_space_semester ON space_photos(space_id, semester_number, created_at DESC);
+CREATE TABLE IF NOT EXISTS community_messages (
+  id TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  body TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'visible' CHECK (status IN ('visible','hidden')),
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX IF NOT EXISTS idx_community_messages_created ON community_messages(status, created_at DESC);
+CREATE TABLE IF NOT EXISTS site_events (
+  id TEXT PRIMARY KEY,
+  event_type TEXT NOT NULL,
+  page_path TEXT NOT NULL,
+  visitor_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX IF NOT EXISTS idx_site_events_created ON site_events(created_at DESC);
+CREATE TABLE IF NOT EXISTS space_semester_notes (
+  id TEXT PRIMARY KEY,
+  space_id TEXT NOT NULL REFERENCES spaces(id) ON DELETE CASCADE,
+  semester_number INTEGER NOT NULL CHECK (semester_number BETWEEN 1 AND 8),
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX IF NOT EXISTS idx_semester_notes_lookup ON space_semester_notes(space_id, semester_number, created_at DESC);
