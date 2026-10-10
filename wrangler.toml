@@ -5,4 +5,4 @@ pages_build_output_dir = "./public"
 [[d1_databases]]
 binding = "DB"
 database_name = "daneshjuyan"
-database_id = "شناسه-واقعی-دیتابیس-را-اینجا-بگذار"
+database_id = "a70ac02d-4d17-42ea-8a78-6ef42acc662a"
