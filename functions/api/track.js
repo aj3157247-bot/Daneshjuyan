@@ -1,0 +1,2 @@
+import {json,requireDb} from './_utils.js';
+export async function onRequestPost({request,env}){try{requireDb(env);let b;try{b=await request.json()}catch{return json({ok:false},400)}const visitor=String(b.visitorId||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);const path=String(b.path||'/').slice(0,180);if(visitor.length<12)return json({ok:false},400);await env.DB.prepare('INSERT INTO site_events(id,event_type,page_path,visitor_hash) VALUES(?,?,?,?)').bind(crypto.randomUUID(),'page_view',path,visitor).run();return json({ok:true})}catch(e){return json({ok:false},503)}}
