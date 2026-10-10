@@ -77,28 +77,14 @@ a.secondary{display:inline-block;text-decoration:none}.admin-nav-link{white-spac
   #contentDialog.group-view .chat-list, #contentDialog.group-view .chat-room-heading, #contentDialog.group-view #chatForm, #contentDialog.group-view .chat-login-hint { max-width:1000px; margin-left:auto; margin-right:auto; }
 }
 
+/* Critical fix: keep styled content dialogs hidden until showModal() opens them.
+   The viewport layout uses display:flex, which otherwise overrides the browser's
+   default dialog:not([open]) rule and lets the closed dialog overlap the homepage. */
+dialog:not([open]) {
+  display: none !important;
+}
 
-/* Final mobile viewport correction: force native content dialog to cover the full viewport */
-#contentDialog:modal, #contentDialog.page-view, #contentDialog.group-view {
-  position: fixed !important;
-  inset: 0 !important;
-  top: 0 !important; right: 0 !important; bottom: 0 !important; left: 0 !important;
-  margin: 0 !important;
-  transform: none !important;
-  width: 100% !important; min-width: 100% !important; max-width: none !important;
-  height: 100% !important; height: 100dvh !important; min-height: 100% !important; max-height: none !important;
-  box-sizing: border-box !important;
-  border: 0 !important; border-radius: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-}
-html:has(#contentDialog:modal), body:has(#contentDialog:modal) {
-  overflow: hidden !important;
-  overscroll-behavior: none !important;
-}
-#contentDialog:modal::backdrop { background: transparent !important; backdrop-filter: none !important; }
-@media (max-width: 760px) {
-  #contentDialog:modal { width: 100% !important; min-width: 100% !important; }
-  #contentDialog.page-view #contentBody { min-width: 0; width: 100%; }
-  #contentDialog.group-view #panel-chat { min-width: 0; width: 100%; }
+/* Prevent background scrolling while a full-screen page/group dialog is open. */
+body:has(#contentDialog[open]) {
+  overflow: hidden;
 }
