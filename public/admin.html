@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#116b5b"><title>مدیریت سایت | دانشجویان</title><link rel="stylesheet" href="/styles.css"></head>
+<body>
+<header class="topbar"><a class="brand" href="/"><span class="logo">د</span><span>مدیریت دانشجویان<small>پنل اختصاصی مدیر اصلی</small></span></a><a class="secondary admin-nav-link" href="/">← بازگشت به سایت</a></header>
+<main class="admin-main"><section class="hero admin-hero"><span class="eyebrow">دسترسی محافظت‌شده</span><h1>پنل مدیریت سایت</h1><p>مدیریت صفحه‌ها و گروه‌ها، کنترل پیام‌های گروه عمومی و بررسی آمار بازدید.</p></section>
+<div id="adminStatus" class="status" hidden></div>
+<section id="adminLoginCard" class="admin-card"><h2>ورود مدیر اصلی</h2><p class="muted">برای ورود از ایمیل و رمز تعریف‌شده در Cloudflare Pages استفاده کن.</p><form id="adminLoginForm"><label for="adminEmail">ایمیل مدیر</label><input id="adminEmail" type="email" required autocomplete="username" placeholder="ایمیل مدیر اصلی"><label for="adminPassword">رمز مدیریت</label><input id="adminPassword" type="password" required autocomplete="current-password" placeholder="رمز قوی مدیریت"><button class="primary" type="submit">ورود امن</button></form></section>
+<section id="adminDashboard" hidden><div class="admin-section-head"><h2>نمای کلی</h2><button class="secondary" id="adminRefresh" type="button">↻ تازه‌سازی</button></div><div id="adminStats" class="admin-stats"></div><h2>آمار بازدید ۱۴ روز اخیر</h2><div id="trafficList" class="content-list"></div><h2>مدیریت صفحه‌ها و گروه‌ها</h2><div id="adminSpacesList" class="content-list"></div><h2>مدیریت پیام‌های گروه عمومی</h2><div id="adminCommunityList" class="content-list"></div><button class="secondary" id="adminLogout" type="button">خروج از پنل</button></section>
+<p class="notice">این پنل به همان پایگاه داده سایت متصل است. تغییرات مدیریتی در سایت اصلی نیز اعمال می‌شود.</p></main>
+<script src="/admin.js"></script>
+</body></html>
