@@ -1,53 +1,76 @@
-const universities = [
- {name:"دانشگاه کابل",desc:"کابل · دانشگاه دولتی",icon:"🏛️",color:"blue-bg",fields:["کمپیوتر ساینس","حقوق","طب","اقتصاد"]},
- {name:"پوهنتون هرات",desc:"هرات · دانشگاه دولتی",icon:"🎓",color:"pink-bg",fields:["حقوق","ادبیات","انجنیری"]},
- {name:"پوهنتون بلخ",desc:"مزار شریف · دانشگاه دولتی",icon:"📘",color:"mint-bg",fields:["کمپیوتر ساینس","اقتصاد","حقوق"]},
- {name:"دانشگاه ننگرهار",desc:"جلال‌آباد · دانشگاه دولتی",icon:"🌿",color:"gold-bg",fields:["طب","انجنیری","زراعت"]},
- {name:"پوهنتون کندهار",desc:"کندهار · دانشگاه دولتی",icon:"📚",color:"blue-bg",fields:["طب","حقوق","کمپیوتر ساینس"]},
- {name:"پوهنتون بامیان",desc:"بامیان · دانشگاه دولتی",icon:"⛰️",color:"mint-bg",fields:["علوم اجتماعی","اقتصاد"]},
- {name:"پوهنتون تخار",desc:"تخار · دانشگاه دولتی",icon:"🧭",color:"gold-bg",fields:["حقوق","زراعت","تعلیم و تربیه"]},
- {name:"دانشگاه تعلیم و تربیه کابل",desc:"کابل · دانشگاه دولتی",icon:"✏️",color:"pink-bg",fields:["تعلیم و تربیه","ریاضیات","ادبیات"]}
-];
-const fields = [
- {name:"کمپیوتر ساینس",cat:"technology",symbol:"⌘",color:"#1769ff",tint:"#eaf2ff",desc:"برنامه‌نویسی، شبکه و دیتابیس",subjects:["مبانی کمپیوتر","برنامه‌نویسی ۱","ریاضیات عمومی","منطق دیجیتال"]},
- {name:"انجنیری",cat:"technology",symbol:"⚙",color:"#8055f7",tint:"#f0eaff",desc:"مضامین پایه و تخصصی انجنیری",subjects:["ریاضیات عمومی","فزیک","رسم تخنیکی","میکانیک"]},
- {name:"طب",cat:"health",symbol:"✚",color:"#e95e8b",tint:"#fff0f5",desc:"علوم طبی و مضامین اساسی",subjects:["اناتومی","فزیولوژی","بیوشیمی","مقدمه طب"]},
- {name:"حقوق",cat:"social",symbol:"⚖",color:"#d99a23",tint:"#fff5df",desc:"حقوق اساسی و مضامین قانونی",subjects:["مقدمه حقوق","حقوق اساسی","تاریخ حقوق","اصول فقه"]},
- {name:"اقتصاد",cat:"social",symbol:"▥",color:"#13a98a",tint:"#e5faf4",desc:"اقتصاد، حسابداری و مدیریت",subjects:["اقتصاد خرد","حسابداری ۱","ریاضیات اقتصادی","مدیریت عمومی"]},
- {name:"اداره و تجارت",cat:"social",symbol:"▤",color:"#1769ff",tint:"#eaf2ff",desc:"مدیریت سازمان و تجارت",subjects:["اصول مدیریت","بازاریابی","حسابداری","اقتصاد عمومی"]},
- {name:"زراعت",cat:"health",symbol:"♧",color:"#13a98a",tint:"#e5faf4",desc:"علوم زراعتی و منابع طبیعی",subjects:["مقدمه زراعت","خاک‌شناسی","بیولوژی","کیمیا"]},
- {name:"تعلیم و تربیه",cat:"social",symbol:"✎",color:"#8055f7",tint:"#f0eaff",desc:"روش‌های تدریس و آموزش",subjects:["روان‌شناسی تربیتی","اصول تعلیم","روش تدریس","تاریخ تعلیم"]}
-];
-const materials = [
- {title:"جزوه مبانی برنامه‌نویسی",field:"کمپیوتر ساینس",uni:"دانشگاه کابل",type:"notes",label:"جزوه",icon:"PDF",desc:"نمونه · سمستر اول",size:"نمونه نمایشی"},
- {title:"سوالات نمونه حقوق اساسی",field:"حقوق",uni:"پوهنتون هرات",type:"exam",label:"امتحان",icon:"Q&A",desc:"نمونه · سمستر دوم",size:"نمونه نمایشی"},
- {title:"مقدمه اقتصاد خرد",field:"اقتصاد",uni:"پوهنتون بلخ",type:"book",label:"کتاب",icon:"PDF",desc:"نمونه · سمستر اول",size:"نمونه نمایشی"},
- {title:"لکچر اناتومی عمومی",field:"طب",uni:"دانشگاه ننگرهار",type:"notes",label:"لکچر",icon:"PDF",desc:"نمونه · سمستر اول",size:"نمونه نمایشی"},
- {title:"تمرین ریاضیات عمومی",field:"انجنیری",uni:"دانشگاه کابل",type:"exam",label:"امتحان",icon:"Q&A",desc:"نمونه · سمستر اول",size:"نمونه نمایشی"},
- {title:"اصول مدیریت",field:"اداره و تجارت",uni:"پوهنتون بلخ",type:"book",label:"کتاب",icon:"PDF",desc:"نمونه · سمستر دوم",size:"نمونه نمایشی"},
- {title:"یادداشت‌های زراعت",field:"زراعت",uni:"پوهنتون تخار",type:"notes",label:"جزوه",icon:"PDF",desc:"نمونه · سمستر اول",size:"نمونه نمایشی"},
- {title:"روش تدریس عمومی",field:"تعلیم و تربیه",uni:"دانشگاه تعلیم و تربیه کابل",type:"book",label:"کتاب",icon:"PDF",desc:"نمونه · سمستر سوم",size:"نمونه نمایشی"}
-];
-const semesters = ["سمستر اول","سمستر دوم","سمستر سوم","سمستر چهارم","سمستر پنجم","سمستر ششم","سمستر هفتم","سمستر هشتم"];
-const $ = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
-const universityGrid=$("#universityGrid"), fieldGrid=$("#fieldGrid"), materialsGrid=$("#materialsGrid");
-function renderUniversities(list=universities){universityGrid.innerHTML=list.map((u,i)=>`<article class="university-card" tabindex="0" data-university="${u.name}"><span class="uni-icon ${u.color}">${u.icon}</span><div><h3>${u.name}</h3><p>${u.desc}</p></div><span class="uni-arrow">←</span></article>`).join("");$$("[data-university]").forEach(el=>{el.addEventListener("click",()=>openUniversity(el.dataset.university));el.addEventListener("keydown",e=>{if(e.key==="Enter")openUniversity(el.dataset.university)})})}
-function renderFields(list=fields){fieldGrid.innerHTML=list.map(f=>`<article class="field-card" tabindex="0" data-field="${f.name}" style="--field-color:${f.color};--field-tint:${f.tint}"><span class="field-symbol">${f.symbol}</span><h3>${f.name}</h3><p>${f.desc}</p><span class="field-link">دیدن سمسترها ←</span></article>`).join("");$$("[data-field]").forEach(el=>{el.addEventListener("click",()=>openField(el.dataset.field));el.addEventListener("keydown",e=>{if(e.key==="Enter")openField(el.dataset.field)})})}
-function renderMaterials(list=materials){materialsGrid.innerHTML=list.map((m,i)=>`<article class="material-card"><div class="material-top"><span class="file-icon ${m.type==="book"?"book":m.type==="exam"?"exam":""}">${m.icon}</span><span class="material-type">${m.label}</span></div><h3>${m.title}</h3><p>${m.uni} · ${m.desc}</p><div class="material-foot"><span>${m.size}</span><button data-resource="${i}">جزئیات</button></div></article>`).join("");$$("[data-resource]").forEach(b=>b.addEventListener("click",()=>showResource(materials[Number(b.dataset.resource)])))}
-function openModal(id){const m=$("#"+id);m.classList.add("open");m.setAttribute("aria-hidden","false");document.body.style.overflow="hidden"}
-function closeModals(){ $$(".modal-backdrop").forEach(m=>{m.classList.remove("open");m.setAttribute("aria-hidden","true")});document.body.style.overflow=""}
-$$("[data-close]").forEach(b=>b.addEventListener("click",closeModals));$$(".modal-backdrop").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeModals()}));document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModals()});
-function openUniversity(name){const u=universities.find(x=>x.name===name);$("#detailContent").innerHTML=`<span class="section-kicker">دانشگاه انتخاب‌شده</span><h2 id="detailTitle">${u.name}</h2><p class="modal-intro">${u.desc}. یکی از رشته‌های زیر را انتخاب کن تا سمسترها و مضامین نمونه را ببینی.</p><div class="field-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:18px">${u.fields.map(n=>{const f=fields.find(x=>x.name===n)||fields[0];return `<article class="field-card" data-modal-field="${n}" style="padding:14px;--field-color:${f.color};--field-tint:${f.tint}"><span class="field-symbol">${f.symbol}</span><h3>${n}</h3><p>۸ سمستر · منابع نمونه</p><span class="field-link">باز کردن ←</span></article>`}).join("")}</div>`;openModal("detailModal");$$("[data-modal-field]").forEach(el=>el.addEventListener("click",()=>openField(el.dataset.modalField)))}
-function openField(name){const f=fields.find(x=>x.name===name)||fields[0];$("#detailContent").innerHTML=`<span class="section-kicker">صفحه اختصاصی رشته</span><h2 id="detailTitle">${f.name}</h2><p class="modal-intro">${f.desc}. سمستر موردنظر را باز کن تا مضامین نمونه را ببینی. محتوای نمایش‌داده‌شده نمونه است و باید با برنامه رسمی هر دانشگاه تکمیل شود.</p><div class="detail-semesters">${semesters.map((s,i)=>`<div class="semester-row ${i===0?"expanded":""}"><button type="button">${s}<span>${i===0?"۴ مضمون نمونه":"مشاهده مضامین ←"}</span></button><div class="semester-subjects">${f.subjects.map((sub,j)=>`<div class="subject-item">${sub}<small>${s} · ${j===0?"جزوه و لکچر":"منابع درسی"}</small></div>`).join("")}</div></div>`).join("")}</div>`;openModal("detailModal");$$(".semester-row>button").forEach(b=>b.addEventListener("click",()=>b.parentElement.classList.toggle("expanded")))}
-function showResource(m){$("#detailContent").innerHTML=`<span class="section-kicker">جزئیات منبع</span><h2 id="detailTitle">${m.title}</h2><p class="modal-intro">${m.uni} · رشته ${m.field} · ${m.desc}</p><div class="subject-item" style="margin-top:18px">این مورد فقط برای نمایش ظاهر سایت ساخته شده است.<small>هنوز فایل واقعی برای دانلود به این منبع وصل نشده است.</small></div><button class="btn btn-primary" style="margin-top:20px" id="resourceUpload">پیشنهاد منبع واقعی</button>`;openModal("detailModal");$("#resourceUpload").addEventListener("click",()=>{closeModals();openUpload()})}
-function openUpload(){openModal("uploadModal");$("#formMessage").textContent=""}
-$("#uploadTop").addEventListener("click",openUpload);$("#uploadBottom").addEventListener("click",openUpload);$("#exploreBtn").addEventListener("click",()=>openField("کمپیوتر ساینس"));
-$("#uploadForm").addEventListener("submit",e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.currentTarget));const pending=JSON.parse(localStorage.getItem("daneshjuyan_suggestions")||"[]");pending.push({...data,submittedAt:new Date().toISOString(),status:"pending"});localStorage.setItem("daneshjuyan_suggestions",JSON.stringify(pending));$("#formMessage").textContent="پیشنهاد در همین مرورگر ذخیره شد. برای ارسال واقعی به مدیر، بک‌اند لازم است.";e.currentTarget.reset();showToast("پیشنهاد به‌صورت محلی ذخیره شد")});
-function showToast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3000)}
-$$("[data-field-filter]").forEach(b=>b.addEventListener("click",()=>{$$("[data-field-filter]").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderFields(b.dataset.fieldFilter==="all"?fields:fields.filter(f=>f.cat===b.dataset.fieldFilter))}));
-$$("[data-material-filter]").forEach(b=>b.addEventListener("click",()=>{$$("[data-material-filter]").forEach(x=>x.classList.remove("active"));b.classList.add("active");renderMaterials(b.dataset.materialFilter==="all"?materials:materials.filter(m=>m.type===b.dataset.materialFilter))}));
-function searchAll(q){q=q.trim().toLocaleLowerCase();if(!q){renderUniversities();renderFields();renderMaterials();return}const u=universities.filter(x=>(x.name+" "+x.desc+" "+x.fields.join(" ")).toLocaleLowerCase().includes(q));const f=fields.filter(x=>(x.name+" "+x.desc+" "+x.subjects.join(" ")).toLocaleLowerCase().includes(q));const m=materials.filter(x=>(x.title+" "+x.field+" "+x.uni+" "+x.label).toLocaleLowerCase().includes(q));renderUniversities(u);renderFields(f);renderMaterials(m);$("#universities").scrollIntoView({behavior:"smooth"});showToast(`نتایج جستجو برای «${q}» نمایش داده شد`)}
-$("#searchForm").addEventListener("submit",e=>{e.preventDefault();searchAll($("#globalSearch").value)});$("#globalSearch").addEventListener("input",e=>{if(!e.target.value.trim()){renderUniversities();renderFields();renderMaterials()}});
-$("#menuToggle").addEventListener("click",()=>{$(".desktop-nav").classList.toggle("open")});$$(".desktop-nav a").forEach(a=>a.addEventListener("click",()=>$(".desktop-nav").classList.remove("open")));
-renderUniversities();renderFields();renderMaterials();
+const $ = (s, root=document) => root.querySelector(s);
+const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+const STORAGE = 'daneshjuyan_simple_demo_v1';
+let items = [];
+let activeKind = 'page';
+let joiningId = null;
+let unlockedIds = [];
+
+try { items = JSON.parse(localStorage.getItem(STORAGE) || '[]'); } catch { items = []; }
+try { unlockedIds = JSON.parse(localStorage.getItem('daneshjuyan_unlocked_demo_v1') || '[]'); } catch { unlockedIds = []; }
+const save = () => localStorage.setItem(STORAGE, JSON.stringify(items));
+const saveUnlocked = () => localStorage.setItem('daneshjuyan_unlocked_demo_v1', JSON.stringify(unlockedIds));
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function openCreate(){ $('#createForm').reset(); $('#createDialog').showModal(); }
+['#createTop','#createHero','#createEmpty'].forEach(sel => $(sel).addEventListener('click', openCreate));
+$$('[data-close]').forEach(b => b.addEventListener('click', () => $('#'+b.dataset.close).close()));
+$$('.tab').forEach(b => b.addEventListener('click', () => {
+  activeKind = b.dataset.kind; $$('.tab').forEach(t=>t.classList.toggle('active',t===b)); render();
+}));
+$('#search').addEventListener('input', render);
+
+$('#createForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const f = new FormData(e.currentTarget);
+  const item = {
+    id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random())),
+    kind: f.get('kind'), title: String(f.get('title')).trim(),
+    university: String(f.get('university')).trim(), field: String(f.get('field')).trim(),
+    semester: f.get('semester'), shift: f.get('shift'), password: String(f.get('password')),
+    createdAt: new Date().toISOString()
+  };
+  if (!item.title || !item.university || !item.field || !item.semester || item.password.length < 4) return;
+  items.unshift(item); save(); $('#createDialog').close(); activeKind=item.kind;
+  $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.kind===activeKind));
+  $('#search').value=''; render();
+});
+
+function render(){
+  const q = $('#search').value.trim().toLocaleLowerCase();
+  const shown = items.filter(x => x.kind===activeKind && [x.title,x.university,x.field,x.semester,x.shift].join(' ').toLocaleLowerCase().includes(q));
+  $('#listing').innerHTML = shown.map(x => `
+    <article class="card">
+      <div class="card-top"><div class="kind-icon">${x.kind==='page'?'▤':'☏'}</div><span class="badge">🔒 رمزدار</span></div>
+      <h3>${escapeHtml(x.title)}</h3>
+      <p>${x.kind==='page'?'صفحه اختصاصی صنف':'گروه گفتگو'}</p>
+      <div class="details"><span>${escapeHtml(x.university)}</span><span>${escapeHtml(x.field)}</span><span>${escapeHtml(x.semester)}</span><span>نوبت ${escapeHtml(x.shift)}</span></div>
+      <button class="enter" data-enter="${escapeHtml(x.id)}">🔑 وارد شدن با رمز</button>
+    </article>`).join('');
+  $('#empty').hidden = shown.length !== 0;
+  $('#listing').hidden = shown.length === 0;
+  $$('[data-enter]').forEach(b=>b.addEventListener('click',()=>startJoin(b.dataset.enter)));
+}
+function startJoin(id){
+  joiningId=id; const item=items.find(x=>x.id===id); if(!item)return;
+  if (unlockedIds.includes(id)) { showContent(item); return; }
+  $('#joinTitle').textContent = item.kind==='page'?'ورود به صفحه':'ورود به گروه';
+  $('#joinDescription').textContent = `${item.title} — ${item.university}، ${item.field}، ${item.semester}`;
+  $('#joinPassword').value=''; $('#joinError').hidden=true; $('#joinDialog').showModal();
+}
+$('#joinForm').addEventListener('submit', e=>{
+  e.preventDefault(); const item=items.find(x=>x.id===joiningId); if(!item)return;
+  if($('#joinPassword').value !== item.password){ $('#joinError').hidden=false; return; }
+  $('#joinDialog').close();
+  if (!unlockedIds.includes(item.id)) unlockedIds.push(item.id);
+  saveUnlocked();
+  showContent(item);
+});
+function showContent(item){
+  $('#contentType').textContent=item.kind==='page'?'صفحه صنف':'گروه گفتگو';
+  $('#contentTitle').textContent=item.title;
+  $('#contentMeta').textContent=`${item.university} • ${item.field} • ${item.semester} • نوبت ${item.shift}`;
+  $('#insideHeading').textContent=item.kind==='page'?'محتوای صفحه صنف':'گفتگوی گروه';
+  $('#insideText').textContent=item.kind==='page'?'در نسخه کامل، نوت‌ها و فایل‌های درسی اینجا نمایش داده می‌شوند.':'در نسخه کامل، پیام‌های اعضای مجاز اینجا نمایش داده می‌شوند.';
+  $('#contentDialog').showModal();
+}
+render();

@@ -1,46 +1,89 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#1769ff">
-  <meta name="description" content="دانشجویان؛ مرجع منظم منابع درسی دانشگاه‌های افغانستان، سمستر به سمستر.">
-  <title>دانشجویان | منابع درسی دانشگاه‌های افغانستان</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#116b5b">
+<title>دانشجویان | صفحه‌ها و گروه‌ها</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <header class="topbar">
-  <a class="brand" href="#" aria-label="دانشجویان صفحه اصلی"><span class="brand-mark">د</span><span>دانشجویان<small>مرجع منابع درسی دانشگاهی</small></span></a>
-  <nav class="desktop-nav" aria-label="منوی اصلی"><a href="#universities">دانشگاه‌ها</a><a href="#fields">رشته‌ها</a><a href="#materials">منابع درسی</a><a href="#how">راهنما</a></nav>
-  <div class="top-actions"><button class="btn btn-ghost" id="uploadTop">＋ افزودن منبع</button><button class="menu-toggle" id="menuToggle" aria-label="باز کردن منو">☰</button></div>
+  <a class="brand" href="#"><span class="logo">د</span><span>دانشجویان<small>صفحه‌ها و گروه‌های دانشجویی</small></span></a>
+  <button class="primary" id="createTop">＋ ساخت صفحه یا گروه</button>
 </header>
 <main>
-<section class="hero">
- <div class="hero-content">
-  <div class="eyebrow"><span class="pulse"></span> یادگیری آسان‌تر، آینده روشن‌تر</div>
-  <h1>تمام منابع درسی‌ات،<br><span class="gradient-text">یک‌جا و منظم.</span></h1>
-  <p class="hero-copy">منابع دانشگاهی افغانستان را بر اساس دانشگاه، رشته، سمستر و مضمون پیدا کن؛ از جزوه و لکچر تا سوالات امتحانی.</p>
-  <form class="searchbar" id="searchForm"><span class="search-icon">⌕</span><input id="globalSearch" type="search" placeholder="نام دانشگاه، رشته یا مضمون را جستجو کن..." aria-label="جستجوی منابع"><button type="submit">جستجو <span>←</span></button></form>
-  <div class="hero-tags"><span>✓ دسته‌بندی سمسترها</span><span>✓ منابع رایگان</span><span>✓ مناسب موبایل</span></div>
- </div>
- <div class="hero-visual" aria-label="نمایش کارت‌های آموزشی">
-  <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
-  <div class="floating-card card-main"><div class="card-main-top"><span class="mini-icon blue">⌘</span><span class="status">مسیر یادگیری</span></div><h3>کمپیوتر ساینس</h3><p>از مبانی تا پروژه‌های پیشرفته</p><div class="progress-label"><span>پیشرفت مسیر</span><b>۶۸٪</b></div><div class="progress"><span style="width:68%"></span></div><div class="semester-pills"><span>سمستر ۱</span><span>سمستر ۲</span><span>سمستر ۳</span></div></div>
-  <div class="floating-card card-note"><span class="note-icon">✦</span><div><b>جزوه‌های مفید</b><small>منابع برای مرور امتحان</small></div><span class="note-arrow">↗</span></div>
-  <div class="floating-card card-book"><span>📚</span><b>منابع درسی</b><small>مرتب و دسته‌بندی‌شده</small></div><div class="hero-spark spark-a">✦</div><div class="hero-spark spark-b">✧</div>
- </div>
- <div class="hero-bottom"><div><b>یادگیری با نظم شروع می‌شود</b><span>منبع درست را، در زمان درست پیدا کن.</span></div><div class="scroll-cue">پایین برو <span>↓</span></div></div>
-</section>
-<section class="stats-strip"><div><span class="stat-icon violet">▦</span><p><b>همه سمسترها</b><small>ساختار منظم درسی</small></p></div><div><span class="stat-icon cyan">⌕</span><p><b>جستجوی آسان</b><small>پیدا کردن سریع منابع</small></p></div><div><span class="stat-icon orange">⇩</span><p><b>منابع قابل دانلود</b><small>برای مطالعه در هر زمان</small></p></div><div><span class="stat-icon green">♡</span><p><b>ذخیره علاقه‌مندی‌ها</b><small>منابع محبوب خودت</small></p></div></section>
-<section class="section" id="universities"><div class="section-heading"><div><span class="section-kicker">شروع مسیر</span><h2>دانشگاهت را انتخاب کن</h2><p>برای دیدن رشته‌ها و منابع موجود، یک دانشگاه را انتخاب کن.</p></div><a class="text-link" href="#fields">دیدن رشته‌ها <span>←</span></a></div><div class="university-grid" id="universityGrid"></div></section>
-<section class="section fields-section" id="fields"><div class="section-heading"><div><span class="section-kicker">مسیر تحصیلی تو</span><h2>بر اساس رشته جستجو کن</h2><p>از رشته‌ات شروع کن و به مضمون موردنظرت برس.</p></div><div class="field-controls"><button class="filter-chip active" data-field-filter="all">همه رشته‌ها</button><button class="filter-chip" data-field-filter="technology">تکنالوژی</button><button class="filter-chip" data-field-filter="health">علوم صحی</button><button class="filter-chip" data-field-filter="social">علوم اجتماعی</button></div></div><div class="field-grid" id="fieldGrid"></div></section>
-<section class="semester-feature"><div class="semester-art"><div class="semester-ring"></div><div class="semester-folder"><span>✦</span><b>سمستر</b><strong>۰۱</strong><small>منظم و کامل</small></div><div class="semester-mini mini-one">PDF <span>↗</span></div><div class="semester-mini mini-two">لکچر <span>✓</span></div><div class="semester-mini mini-three">امتحان <span>✎</span></div></div><div class="semester-copy"><span class="section-kicker">قدم‌به‌قدم تا فراغت</span><h2>هر سمستر، یک پوشه.<br><span class="gradient-text">هر مضمون، یک مسیر روشن.</span></h2><p>در صفحه هر رشته، سمسترها جداگانه نمایش داده می‌شوند. وارد سمستر شو، مضمون را انتخاب کن و منابعش را یک‌جا ببین.</p><ul class="check-list"><li>مضامین هر سمستر به‌صورت جداگانه</li><li>جزوه، لکچر، کتاب و سوالات امتحانی</li><li>امکان افزودن منبع با بررسی مدیر</li></ul><button class="btn btn-primary" id="exploreBtn">دیدن نمونه رشته <span>←</span></button></div></section>
-<section class="section materials-section" id="materials"><div class="section-heading"><div><span class="section-kicker">تازه‌های کتابخانه</span><h2>منابع نمونه</h2><p>این‌ها نمونه‌های نمایشی‌اند؛ می‌توانی منابع واقعی را بعداً اضافه کنی.</p></div><div class="material-tabs"><button class="active" data-material-filter="all">همه</button><button data-material-filter="notes">جزوه</button><button data-material-filter="exam">امتحان</button><button data-material-filter="book">کتاب</button></div></div><div class="materials-grid" id="materialsGrid"></div></section>
-<section class="contribute" id="how"><div class="contribute-icon">＋</div><div><span class="section-kicker">مشارکت دانشجویی</span><h2>منبع خوبی داری؟ با دیگران شریک کن.</h2><p>جزوه یا منبع درسی‌ات را پیشنهاد بده. برای حفظ کیفیت، انتشار منابع پس از بررسی مدیر انجام می‌شود.</p></div><button class="btn btn-light" id="uploadBottom">افزودن منبع <span>↗</span></button></section>
+  <section class="hero">
+    <span class="eyebrow">جامعه دانشجویان افغانستان</span>
+    <h1>صنف خودت را بساز؛<br><em>با هم‌صنفی‌هایت وصل شو.</em></h1>
+    <p>صفحه یا گروه بساز، مشخصات پوهنتون و رشته را وارد کن و با رمز، دسترسی را فقط به هم‌صنفی‌هایت بده.</p>
+    <button class="primary big" id="createHero">＋ ساخت صفحه یا گروه</button>
+  </section>
+
+  <section class="toolbar">
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-kind="page">صفحه‌ها</button>
+      <button class="tab" data-kind="group">گروه‌ها</button>
+    </div>
+    <input id="search" type="search" placeholder="جستجوی پوهنتون، رشته یا نام..." aria-label="جستجو">
+  </section>
+  <section id="listing" class="grid" aria-live="polite"></section>
+  <div id="empty" class="empty" hidden>
+    <div class="empty-icon">▤</div><h2>هنوز چیزی ساخته نشده</h2>
+    <p>اولین صفحه یا گروه صنف خود را بسازید.</p>
+    <button class="primary" id="createEmpty">＋ ساخت صفحه یا گروه</button>
+  </div>
+  <p class="notice">نمونه اولیه: اطلاعات فعلاً در همین مرورگر ذخیره می‌شود. برای استفاده واقعی، رمزها و محتوا باید از طریق Backend امن بررسی و ذخیره شوند.</p>
 </main>
-<footer class="footer"><a class="brand footer-brand" href="#"><span class="brand-mark">د</span><span>دانشجویان<small>دانش، برای همه</small></span></a><div class="footer-links"><a href="#universities">دانشگاه‌ها</a><a href="#fields">رشته‌ها</a><a href="#materials">منابع</a><a href="README.md">درباره پروژه</a></div><span class="copyright">© ۲۰۲۶ دانشجویان · نسخه نمایشی</span></footer>
-<div class="modal-backdrop" id="detailModal" aria-hidden="true"><section class="modal detail-modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle"><button class="modal-close" data-close aria-label="بستن">×</button><div id="detailContent"></div></section></div>
-<div class="modal-backdrop" id="uploadModal" aria-hidden="true"><section class="modal upload-modal" role="dialog" aria-modal="true" aria-labelledby="uploadTitle"><button class="modal-close" data-close aria-label="بستن">×</button><span class="section-kicker">مشارکت دانشجویی</span><h2 id="uploadTitle">پیشنهاد یک منبع درسی</h2><p class="modal-intro">این فرم در نسخه نمایشی است؛ برای دریافت واقعی فایل و ذخیره اطلاعات، باید بک‌اند و فضای ذخیره‌سازی متصل شود.</p><form id="uploadForm" class="upload-form"><label>نام منبع<input required name="title" placeholder="مثلاً جزوه برنامه‌نویسی ۱"></label><div class="form-row"><label>دانشگاه<select name="university" required><option value="">انتخاب کن</option><option>دانشگاه کابل</option><option>پوهنتون هرات</option><option>پوهنتون بلخ</option><option>دانشگاه ننگرهار</option><option>دانشگاه دیگر</option></select></label><label>نوع منبع<select name="type" required><option value="notes">جزوه</option><option value="book">کتاب</option><option value="exam">سوالات امتحانی</option><option value="lecture">لکچر</option></select></label></div><label>توضیحات<textarea name="description" rows="3" placeholder="رشته، سمستر و مضمون..."></textarea></label><label>لینک منبع (اختیاری)<input name="url" type="url" placeholder="https://..."></label><button class="btn btn-primary full-width" type="submit">ثبت پیشنهاد</button><p class="form-message" id="formMessage" role="status"></p></form></section></div>
-<div class="toast" id="toast" role="status"></div>
+
+<dialog id="createDialog">
+  <form id="createForm" method="dialog">
+    <div class="dialog-head"><div><span class="eyebrow">شروع ساده</span><h2>ساخت صفحه یا گروه</h2></div><button type="button" class="close" data-close="createDialog">×</button></div>
+    <label>چه چیزی می‌خواهی بسازی؟</label>
+    <div class="choice-row">
+      <label class="choice"><input type="radio" name="kind" value="page" checked><span>▤ صفحه صنف</span></label>
+      <label class="choice"><input type="radio" name="kind" value="group"><span>☏ گروه گفتگو</span></label>
+    </div>
+    <label for="title">نام صفحه یا گروه *</label><input id="title" name="title" required maxlength="80" placeholder="مثلاً صنف کمپیوتر ساینس">
+    <div class="two-col">
+      <div><label for="university">نام پوهنتون / دانشگاه *</label><input id="university" name="university" required maxlength="100" placeholder="نام پوهنتون را بنویس"></div>
+      <div><label for="field">رشته *</label><input id="field" name="field" required maxlength="100" placeholder="مثلاً طب، حقوق، کمپیوتر ساینس"></div>
+    </div>
+    <div class="two-col">
+      <div><label for="semester">سمستر *</label><select id="semester" name="semester" required>
+        <option value="">انتخاب سمستر</option>
+        <option>سمستر ۱</option><option>سمستر ۲</option><option>سمستر ۳</option><option>سمستر ۴</option>
+        <option>سمستر ۵</option><option>سمستر ۶</option><option>سمستر ۷</option><option>سمستر ۸</option>
+        <option>سمستر ۹</option><option>سمستر ۱۰</option><option>سمستر ۱۱</option><option>سمستر ۱۲</option>
+      </select></div>
+      <div><label for="shift">نوبت درسی</label><select id="shift" name="shift"><option>صبح</option><option>شب</option><option>مشخص نشده</option></select></div>
+    </div>
+    <label for="password">رمز ورود برای هم‌صنفی‌ها *</label><input id="password" name="password" type="password" required minlength="4" maxlength="64" placeholder="حداقل ۴ حرف یا عدد">
+    <p class="form-hint">رمز را فقط با اعضای همان صنف شریک کنید. برای امنیت واقعی، این رمز باید در سرور به‌صورت امن مدیریت شود.</p>
+    <div class="form-actions"><button type="button" class="secondary" data-close="createDialog">انصراف</button><button class="primary" type="submit">ساختن</button></div>
+  </form>
+</dialog>
+
+<dialog id="joinDialog">
+  <form id="joinForm" method="dialog">
+    <div class="dialog-head"><div><span class="eyebrow">دسترسی صنف</span><h2 id="joinTitle">ورود به صفحه</h2></div><button type="button" class="close" data-close="joinDialog">×</button></div>
+    <p id="joinDescription"></p>
+    <label for="joinPassword">رمز ورود</label><input id="joinPassword" type="password" required placeholder="رمز این صفحه یا گروه">
+    <p class="error" id="joinError" hidden>رمز واردشده درست نیست. دوباره تلاش کن.</p>
+    <div class="form-actions"><button type="button" class="secondary" data-close="joinDialog">انصراف</button><button class="primary" type="submit">ورود</button></div>
+  </form>
+</dialog>
+
+<dialog id="contentDialog">
+  <div class="dialog-head"><div><span class="eyebrow" id="contentType">صفحه صنف</span><h2 id="contentTitle"></h2></div><button type="button" class="close" data-close="contentDialog">×</button></div>
+  <div id="contentMeta" class="meta-line"></div>
+  <div class="inside-content">
+    <h3 id="insideHeading">محتوای صنف</h3>
+    <p id="insideText">اینجا فضای اختصاصی اعضای صنف خواهد بود.</p>
+    <div class="placeholder-box">🔒 محتوای خصوصی اعضای این صنف</div>
+  </div>
+  <p class="form-hint">در این نمونه، ورود فقط برای نمایش جریان کار است. محتوا هنوز به Backend وصل نشده است.</p>
+</dialog>
 <script src="app.js"></script>
-</body></html>
+</body>
+</html>
