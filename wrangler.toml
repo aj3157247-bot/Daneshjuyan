@@ -2,5 +2,7 @@ name = "daneshjuyan"
 compatibility_date = "2026-10-10"
 pages_build_output_dir = "./public"
 
-# Cloudflare Pages Settings: D1 binding named DB; Secret named SESSION_SECRET.
-# Run schema.sql in D1 Console before publishing.
+[[d1_databases]]
+binding = "DB"
+database_name = "daneshjuyan"
+database_id = "شناسه-واقعی-دیتابیس-را-اینجا-بگذار"
