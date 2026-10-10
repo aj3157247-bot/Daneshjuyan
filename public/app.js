@@ -5,7 +5,7 @@ const activeSemester = () => Number($('#activeSemester')?.value || 1);
 const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function status(msg) { $('#status').textContent = msg; $('#status').hidden = !msg; }
 function adminStatus(msg) { $('#adminStatus').textContent = msg; $('#adminStatus').hidden = false; }
-function openCreate() { $('#createForm').reset(); $('#createDialog').showModal(); }
+function openCreate() { $('#createForm').reset(); $('#createError').hidden = true; $('#createSubmit').disabled = false; $('#createSubmit').textContent = 'ساختن'; $('#createDialog').showModal(); }
 ['#createTop','#createHero','#createEmpty'].forEach(s => $(s).addEventListener('click', openCreate));
 $$('[data-close]').forEach(b => b.addEventListener('click', () => $('#'+b.dataset.close).close()));
 $$('.tab').forEach(b => b.addEventListener('click', () => { activeKind = b.dataset.kind; $$('.tab').forEach(t => t.classList.toggle('active', t === b)); render(); }));
@@ -25,13 +25,15 @@ async function loadSpaces() {
 $('#createForm').addEventListener('submit', async e => {
   e.preventDefault(); const f = new FormData(e.currentTarget);
   const payload = {kind:f.get('kind'), title:String(f.get('title')).trim(), university:String(f.get('university')).trim(), field:String(f.get('field')).trim(), semester:f.get('semester'), shift:f.get('shift'), password:String(f.get('password'))};
+  const submit = $('#createSubmit'); submit.disabled = true; submit.textContent = 'در حال ساخت…'; $('#createError').hidden = true;
   try { const d = await api('/api/spaces', {method:'POST', body:JSON.stringify(payload)}); $('#createDialog').close(); activeKind = payload.kind; $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.kind === activeKind)); $('#search').value = ''; status('ساخته شد. رمز را در جای امن نگه دار.'); await loadSpaces(); if (d.space) startJoin(d.space.id, true); }
-  catch (err) { status(err.message); }
+  catch (err) { $('#createError').textContent = err.message || 'ساخت انجام نشد؛ دوباره تلاش کن.'; $('#createError').hidden = false; }
+  finally { submit.disabled = false; submit.textContent = 'ساختن'; }
 });
 function render() {
   const q = $('#search').value.trim().toLocaleLowerCase(); const all = window.spaces || [];
   const shown = all.filter(x => x.kind === activeKind && [x.title,x.university,x.field,x.semester,x.shift].join(' ').toLocaleLowerCase().includes(q));
-  $('#listing').innerHTML = shown.map(x => `<article class="card"><div class="card-top"><div class="kind-icon">${x.kind==='page'?'▤':'☏'}</div><span class="badge">🔒 رمزدار</span></div><h3>${escapeHtml(x.title)}</h3><p>${x.kind==='page'?'صفحه اختصاصی صنف':'گروه گفتگو'}</p><div class="details"><span>${escapeHtml(x.university)}</span><span>${escapeHtml(x.field)}</span><span>${escapeHtml(x.semester)}</span><span>نوبت ${escapeHtml(x.shift)}</span></div><button class="enter" data-enter="${escapeHtml(x.id)}">🔑 ورود با رمز</button></article>`).join('');
+  $('#listing').innerHTML = shown.map(x => `<article class="card ${x.kind==='page'?'page-card':'group-card'}"><div class="cover-art"><span class="cover-symbol">${x.kind==='page'?'▤':'☏'}</span><span class="badge">🔒 خصوصی</span></div><div class="card-body"><div class="card-avatar">${x.kind==='page'?'📚':'👥'}</div><h3>${escapeHtml(x.title)}</h3><p>${x.kind==='page'?'صفحه درسی · نوت‌ها و منابع':'گروه صنفی · گفتگو و هماهنگی'}</p><div class="details"><span>${escapeHtml(x.university)}</span><span>${escapeHtml(x.field)}</span><span>${escapeHtml(x.semester)}</span><span>نوبت ${escapeHtml(x.shift)}</span></div><button class="enter" data-enter="${escapeHtml(x.id)}">${x.kind==='page'?'مشاهده صفحه':'ورود به گروه'}　›</button></div></article>`).join('');
   $('#empty').hidden = shown.length > 0; $('#listing').hidden = shown.length === 0; $('#emptyTitle').textContent = activeKind === 'page' ? 'هنوز صفحه‌ای ساخته نشده' : 'هنوز گروهی ساخته نشده';
   $$('[data-enter]').forEach(b => b.addEventListener('click', () => startJoin(b.dataset.enter)));
 }
@@ -45,7 +47,9 @@ $('#joinForm').addEventListener('submit', async e => {
   catch (err) { $('#joinError').textContent = err.message || 'رمز درست نیست یا دسترسی تأیید نشد.'; $('#joinError').hidden = false; }
 });
 async function openContent(item) {
-  currentItem = item; $('#contentType').textContent = item.kind === 'page' ? 'صفحه درسی' : 'گروه گفتگو'; $('#contentTitle').textContent = item.title; $('#contentMeta').textContent = `${item.university} • ${item.field} • ${item.semester} • نوبت ${item.shift}`; $('#activeSemester').value = '1'; notes = []; messages = []; assets = {files:[],photos:[]}; renderNotes(); renderMessages(); renderAssets(); showPanel('overview'); $('#contentDialog').showModal();
+  currentItem = item; const isPage = item.kind === 'page'; const dlg = $('#contentDialog'); dlg.dataset.kind = item.kind; dlg.classList.toggle('page-view', isPage); dlg.classList.toggle('group-view', !isPage); $('#contentType').textContent = isPage ? 'صفحه درسی' : 'گروه صنفی'; $('#contentTitle').textContent = item.title; $('#contentMeta').textContent = `${item.university} • ${item.field} • ${item.semester} • نوبت ${item.shift}`; $('#activeSemester').value = '1'; notes = []; messages = []; assets = {files:[],photos:[]}; renderNotes(); renderMessages(); renderAssets();
+  $('#panel-overview h3').textContent = isPage ? 'به صفحه صنف خوش آمدی' : 'به گروه صنف خوش آمدی'; $('#panel-overview > p').textContent = isPage ? 'نوت‌ها، منابع، عکس‌ها و اطلاعیه‌های این صنف را در یک صفحه دنبال کن.' : 'برای هماهنگی با هم‌صنفی‌ها گفتگو کن، فایل بفرست و خاطرات گروه را نگه‌دار.'; $('#panel-overview .private-banner').textContent = isPage ? '📚 صفحه اختصاصی صنف؛ منابع درسی و پست‌ها به تفکیک سمستر' : '👥 گروه خصوصی صنف؛ گفتگو و هماهنگی اعضا';
+  $$('[data-panel=overview]').forEach(b => b.textContent = isPage ? 'درباره صفحه' : 'نمای کلی'); $$('[data-panel=notes]').forEach(b => b.textContent = isPage ? 'نوت‌های درسی' : 'نوت‌ها'); $$('[data-panel=files]').forEach(b => b.textContent = 'فایل‌ها'); $$('[data-panel=photos]').forEach(b => b.textContent = isPage ? 'عکس‌ها' : 'خاطرات'); $$('[data-panel=chat]').forEach(b => b.textContent = isPage ? '📰 پست‌ها' : '💬 گفتگو'); $('#panel-chat h3').textContent = isPage ? 'پست‌ها و اطلاعیه‌های صفحه' : 'گفتگوی اعضا'; $('#chatMessage').placeholder = isPage ? 'اطلاعیه یا مطلب درسی خود را بنویس…' : 'پیامی برای هم‌صنفی‌ها بنویس…'; $('#chatForm button[type=submit]').textContent = isPage ? 'انتشار پست' : 'ارسال پیام'; $('#panel-chat .form-hint').textContent = isPage ? 'پست‌ها برای اعضای واردشده در این صفحه نمایش داده می‌شوند.' : 'پیام‌های گروه برای اعضای واردشده نمایش داده می‌شوند.'; showPanel(isPage ? 'chat' : 'overview'); dlg.showModal();
   try { await api(`/api/spaces/${encodeURIComponent(item.id)}/content`); await loadSemesterContent(); const m = await api(`/api/spaces/${encodeURIComponent(item.id)}/messages`); messages = m.messages || []; renderMessages(); }
   catch (err) { status('محتوا بارگذاری نشد: ' + err.message); }
 }
@@ -54,7 +58,7 @@ async function loadSemesterContent() {
   try { const d = await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/semester-notes?semester=${n}`); notes = d.notes || []; renderNotes(); }
   catch (err) { notes = []; renderNotes(); status('نوت‌ها بارگذاری نشد: ' + err.message); }
   try { assets = await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/assets?semester=${n}`); renderAssets(); }
-  catch (err) { assets = {files:[],photos:[]}; renderAssets(); if (!String(err.message).includes('R2')) status('فهرست فایل‌ها بارگذاری نشد: ' + err.message); }
+  catch (err) { assets = {files:[],photos:[]}; renderAssets(); status('فهرست فایل‌ها بارگذاری نشد: ' + err.message); }
 }
 $('#activeSemester').addEventListener('change', loadSemesterContent);
 function showPanel(name) { $$('.inside-tab').forEach(b => b.classList.toggle('active', b.dataset.panel === name)); $$('.inside-panel').forEach(p => p.hidden = p.id !== 'panel-' + name); }
