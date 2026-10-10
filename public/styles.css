@@ -20,3 +20,18 @@ a.secondary{display:inline-block;text-decoration:none}.admin-nav-link{white-spac
 @media(max-width:650px){.top-actions #accountTop{max-width:112px}.group-view{width:100%!important;max-width:none!important;height:100dvh!important;max-height:100dvh!important;margin:0!important;border-radius:0!important;padding:14px!important;display:flex;flex-direction:column}.group-view .dialog-head{flex-shrink:0}.group-view #contentMeta{font-size:11px}.group-view .semester-picker{display:none}.group-view .inside-tabs{flex-shrink:0;overflow-x:auto}.group-view #panel-chat{flex:1;min-height:0;padding-top:8px}.group-view .chat-list{flex:1;max-height:none;min-height:120px}.group-view .chat-composer{flex-shrink:0}.group-view .chat-room-heading{margin-bottom:2px}.group-view .chat-room-heading small{font-size:10px}}
 
 [hidden]{display:none!important}
+
+/* Full-screen workspace for opened pages and groups */
+#contentDialog.content-dialog{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:20px;border:0;border-radius:0;box-sizing:border-box;overflow:hidden;}
+#contentDialog.content-dialog[open]{display:flex;flex-direction:column;}
+#contentDialog .dialog-head{flex-shrink:0;}
+#contentDialog #contentMeta{flex-shrink:0;}
+#contentDialog .semester-picker{flex-shrink:0;}
+#contentDialog .inside-tabs{flex-shrink:0;}
+#contentDialog .inside-panel{min-height:0;overflow-y:auto;flex:1;}
+#contentDialog .group-view .inside-tabs,
+#contentDialog.group-view .inside-tabs{display:none!important;}
+#contentDialog.group-view #panel-chat{display:flex;flex:1;min-height:0;overflow:hidden;}
+#contentDialog.group-view #panel-chat .chat-list{flex:1;min-height:0;max-height:none;overflow-y:auto;}
+#contentDialog.group-view #chatForm{flex-shrink:0;}
+@media(max-width:650px){#contentDialog.content-dialog{padding:14px;}#contentDialog .dialog-head{margin-bottom:10px;} }
