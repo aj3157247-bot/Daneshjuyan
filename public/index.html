@@ -3,83 +3,44 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#06b6d4">
-  <meta name="description" content="دانشجویان؛ کتابخانه آموزشی چندزبانه برای دانشجویان افغانستان">
-  <title>دانشجویان | همه درس‌ها، یک‌جا</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
+  <meta name="theme-color" content="#1769ff">
+  <meta name="description" content="دانشجویان؛ مرجع منظم منابع درسی دانشگاه‌های افغانستان، سمستر به سمستر.">
+  <title>دانشجویان | منابع درسی دانشگاه‌های افغانستان</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="announcement"><span class="pulse"></span><span data-i18n="banner">یک فضای مشترک برای یادگیری دانشجویان افغانستان</span></div>
-  <header class="topbar">
-    <a class="brand" href="#" aria-label="دانشجویان">
-      <span class="brand-mark">د</span><span class="brand-name">دانشجویان<span class="brand-dot">.</span><small data-i18n="brandSub">جامعه یادگیری افغانستان</small></span>
-    </a>
-    <nav class="desktop-nav">
-      <a href="#universities" data-i18n="navUniversities">دانشگاه‌ها</a>
-      <a href="#programs" data-i18n="navPrograms">رشته‌ها</a>
-      <a href="#library" data-i18n="navLibrary">کتابخانه درسی</a>
-    </nav>
-    <div class="top-actions">
-      <label class="language-wrap"><span class="sr-only">Language</span><select id="languageSelect" aria-label="Language"><option value="fa">فارسی / دری</option><option value="ps">پښتو</option><option value="en">English</option></select></label>
-      <button id="authButton" class="button button-outline" data-i18n="login">ورود</button>
-      <button id="profileButton" class="avatar-button hidden" title="Profile">●</button>
-      <button id="mobileMenu" class="icon-button" aria-label="Menu">☰</button>
-    </div>
-  </header>
-  <main>
-    <section class="hero">
-      <div class="hero-orb orb-one"></div><div class="hero-orb orb-two"></div>
-      <div class="hero-copy">
-        <div class="eyebrow"><span>✦</span> <span data-i18n="heroEyebrow">یادگیری، بدون مرز</span></div>
-        <h1 data-i18n="heroTitle">همه درس‌هایت،<br><span>یک‌جا و همیشه همراهت.</span></h1>
-        <p data-i18n="heroText">دانشگاه، رشته و سمسترت را انتخاب کن؛ جزوه‌ها، منابع و محتوای درسی را در یک کتابخانه منظم پیدا کن.</p>
-        <div class="hero-search">
-          <span class="search-icon">⌕</span><input id="globalSearch" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="نام دانشگاه، رشته یا مضمون را جست‌وجو کن...">
-          <button id="searchButton" class="button button-primary" data-i18n="search">جست‌وجو</button>
-        </div>
-        <div class="hero-trust"><span class="check">✓</span><span data-i18n="heroTrust">رایگان برای شروع · ساخته‌شده برای دانشجویان افغانستان</span></div>
-      </div>
-      <div class="hero-art" aria-hidden="true">
-        <div class="art-card art-main"><div class="art-top"><span class="art-icon cyan">▤</span><span class="art-menu">•••</span></div><div class="art-title">Computer Science</div><div class="art-sub">Semester 01 · Learning space</div><div class="progress-label"><span>Study progress</span><b>72%</b></div><div class="progress"><i></i></div><div class="mini-courses"><span>⌘ Programming</span><span>∑ Mathematics</span><span>文 English</span></div></div>
-        <div class="floating-note note-top"><span class="note-icon purple">✎</span><span><b data-i18n="artNoteTitle">جزوه‌های مرتب</b><small data-i18n="artNoteSub">همه‌چیز در دسترس</small></span></div>
-        <div class="floating-note note-bottom"><span class="note-icon orange">✓</span><span><b data-i18n="artApprovedTitle">محتوای بررسی‌شده</b><small data-i18n="artApprovedSub">یادگیری مطمئن‌تر</small></span></div>
-        <div class="art-spark spark-one">✦</div><div class="art-spark spark-two">✧</div>
-      </div>
-    </section>
-
-    <section class="stats-strip">
-      <div><span class="stat-icon stat-cyan">⌂</span><span><b id="statUniversities">—</b><small data-i18n="statUniversities">دانشگاه‌ها</small></span></div>
-      <div><span class="stat-icon stat-purple">▦</span><span><b id="statPrograms">—</b><small data-i18n="statPrograms">رشته‌های آموزشی</small></span></div>
-      <div><span class="stat-icon stat-orange">▤</span><span><b id="statCourses">—</b><small data-i18n="statCourses">مضمون‌ها</small></span></div>
-      <div><span class="stat-icon stat-green">◎</span><span><b>۳</b><small data-i18n="statLanguages">زبان</small></span></div>
-    </section>
-
-    <section id="universities" class="section-block">
-      <div class="section-heading"><div><span class="section-kicker" data-i18n="discover">کاوش کن</span><h2 data-i18n="universitiesTitle">دانشگاهت را پیدا کن</h2><p data-i18n="universitiesText">از دانشگاه خود شروع کن و به منابع رشته‌ات برس.</p></div><span class="heading-decoration">✳</span></div>
-      <div id="universityGrid" class="university-grid"><div class="loading-card"></div><div class="loading-card"></div><div class="loading-card"></div></div>
-    </section>
-
-    <section id="programs" class="section-block section-tinted">
-      <div class="section-heading"><div><span class="section-kicker" data-i18n="learningPaths">مسیرهای یادگیری</span><h2 data-i18n="programsTitle">رشته‌ها، دسته‌بندی‌شده و آماده مطالعه</h2><p data-i18n="programsText">رشته را انتخاب کن تا سمسترها و مضمون‌ها را ببینی.</p></div><div class="filter-wrap"><span>⌕</span><input id="programFilter" type="search" data-i18n-placeholder="filterPrograms" placeholder="جست‌وجوی رشته..."></div></div>
-      <div id="programGrid" class="program-grid"><div class="loading-card"></div><div class="loading-card"></div><div class="loading-card"></div></div>
-    </section>
-
-    <section id="library" class="section-block">
-      <div class="section-heading"><div><span class="section-kicker" data-i18n="sharedKnowledge">دانش مشترک</span><h2 data-i18n="libraryTitle">تازه‌های کتابخانه درسی</h2><p data-i18n="libraryText">منابعی که پس از بررسی برای دانشجویان منتشر شده‌اند.</p></div><button id="uploadButton" class="button button-soft" data-i18n="shareResource">＋ اشتراک‌گذاری منبع</button></div>
-      <div id="resourceList" class="resource-list"><div class="empty-state"><span>▤</span><b data-i18n="noResources">هنوز منبعی منتشر نشده است</b><p data-i18n="noResourcesText">اولین منبع آموزشی را به کتابخانه اضافه کن.</p></div></div>
-    </section>
-
-    <section class="community-cta"><div class="cta-symbol">✦</div><div><h2 data-i18n="ctaTitle">دانش وقتی تقسیم شود، رشد می‌کند.</h2><p data-i18n="ctaText">به جامعه دانشجویان بپیوند و منابع مفید را با دیگران به اشتراک بگذار.</p></div><button id="ctaAuthButton" class="button button-white" data-i18n="joinNow">همین حالا بپیوند</button></section>
-  </main>
-  <footer class="footer"><a class="brand footer-brand" href="#"><span class="brand-mark">د</span><span class="brand-name">دانشجویان<span class="brand-dot">.</span><small data-i18n="brandSub">جامعه یادگیری افغانستان</small></span></a><span data-i18n="footerText">ساخته‌شده برای مسیر یادگیری تو.</span><div class="footer-links"><a href="#universities" data-i18n="navUniversities">دانشگاه‌ها</a><a href="#programs" data-i18n="navPrograms">رشته‌ها</a><a href="#library" data-i18n="navLibrary">کتابخانه</a></div></footer>
-
-  <div id="modalBackdrop" class="modal-backdrop hidden">
-    <section id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><button id="closeModal" class="modal-close" aria-label="Close">×</button><div id="modalContent"></div></section>
-  </div>
-  <div id="toast" class="toast" role="status"></div>
-  <script src="/app.js"></script>
-</body>
-</html>
+<header class="topbar">
+  <a class="brand" href="#" aria-label="دانشجویان صفحه اصلی"><span class="brand-mark">د</span><span>دانشجویان<small>مرجع منابع درسی دانشگاهی</small></span></a>
+  <nav class="desktop-nav" aria-label="منوی اصلی"><a href="#universities">دانشگاه‌ها</a><a href="#fields">رشته‌ها</a><a href="#materials">منابع درسی</a><a href="#how">راهنما</a></nav>
+  <div class="top-actions"><button class="btn btn-ghost" id="uploadTop">＋ افزودن منبع</button><button class="menu-toggle" id="menuToggle" aria-label="باز کردن منو">☰</button></div>
+</header>
+<main>
+<section class="hero">
+ <div class="hero-content">
+  <div class="eyebrow"><span class="pulse"></span> یادگیری آسان‌تر، آینده روشن‌تر</div>
+  <h1>تمام منابع درسی‌ات،<br><span class="gradient-text">یک‌جا و منظم.</span></h1>
+  <p class="hero-copy">منابع دانشگاهی افغانستان را بر اساس دانشگاه، رشته، سمستر و مضمون پیدا کن؛ از جزوه و لکچر تا سوالات امتحانی.</p>
+  <form class="searchbar" id="searchForm"><span class="search-icon">⌕</span><input id="globalSearch" type="search" placeholder="نام دانشگاه، رشته یا مضمون را جستجو کن..." aria-label="جستجوی منابع"><button type="submit">جستجو <span>←</span></button></form>
+  <div class="hero-tags"><span>✓ دسته‌بندی سمسترها</span><span>✓ منابع رایگان</span><span>✓ مناسب موبایل</span></div>
+ </div>
+ <div class="hero-visual" aria-label="نمایش کارت‌های آموزشی">
+  <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+  <div class="floating-card card-main"><div class="card-main-top"><span class="mini-icon blue">⌘</span><span class="status">مسیر یادگیری</span></div><h3>کمپیوتر ساینس</h3><p>از مبانی تا پروژه‌های پیشرفته</p><div class="progress-label"><span>پیشرفت مسیر</span><b>۶۸٪</b></div><div class="progress"><span style="width:68%"></span></div><div class="semester-pills"><span>سمستر ۱</span><span>سمستر ۲</span><span>سمستر ۳</span></div></div>
+  <div class="floating-card card-note"><span class="note-icon">✦</span><div><b>جزوه‌های مفید</b><small>منابع برای مرور امتحان</small></div><span class="note-arrow">↗</span></div>
+  <div class="floating-card card-book"><span>📚</span><b>منابع درسی</b><small>مرتب و دسته‌بندی‌شده</small></div><div class="hero-spark spark-a">✦</div><div class="hero-spark spark-b">✧</div>
+ </div>
+ <div class="hero-bottom"><div><b>یادگیری با نظم شروع می‌شود</b><span>منبع درست را، در زمان درست پیدا کن.</span></div><div class="scroll-cue">پایین برو <span>↓</span></div></div>
+</section>
+<section class="stats-strip"><div><span class="stat-icon violet">▦</span><p><b>همه سمسترها</b><small>ساختار منظم درسی</small></p></div><div><span class="stat-icon cyan">⌕</span><p><b>جستجوی آسان</b><small>پیدا کردن سریع منابع</small></p></div><div><span class="stat-icon orange">⇩</span><p><b>منابع قابل دانلود</b><small>برای مطالعه در هر زمان</small></p></div><div><span class="stat-icon green">♡</span><p><b>ذخیره علاقه‌مندی‌ها</b><small>منابع محبوب خودت</small></p></div></section>
+<section class="section" id="universities"><div class="section-heading"><div><span class="section-kicker">شروع مسیر</span><h2>دانشگاهت را انتخاب کن</h2><p>برای دیدن رشته‌ها و منابع موجود، یک دانشگاه را انتخاب کن.</p></div><a class="text-link" href="#fields">دیدن رشته‌ها <span>←</span></a></div><div class="university-grid" id="universityGrid"></div></section>
+<section class="section fields-section" id="fields"><div class="section-heading"><div><span class="section-kicker">مسیر تحصیلی تو</span><h2>بر اساس رشته جستجو کن</h2><p>از رشته‌ات شروع کن و به مضمون موردنظرت برس.</p></div><div class="field-controls"><button class="filter-chip active" data-field-filter="all">همه رشته‌ها</button><button class="filter-chip" data-field-filter="technology">تکنالوژی</button><button class="filter-chip" data-field-filter="health">علوم صحی</button><button class="filter-chip" data-field-filter="social">علوم اجتماعی</button></div></div><div class="field-grid" id="fieldGrid"></div></section>
+<section class="semester-feature"><div class="semester-art"><div class="semester-ring"></div><div class="semester-folder"><span>✦</span><b>سمستر</b><strong>۰۱</strong><small>منظم و کامل</small></div><div class="semester-mini mini-one">PDF <span>↗</span></div><div class="semester-mini mini-two">لکچر <span>✓</span></div><div class="semester-mini mini-three">امتحان <span>✎</span></div></div><div class="semester-copy"><span class="section-kicker">قدم‌به‌قدم تا فراغت</span><h2>هر سمستر، یک پوشه.<br><span class="gradient-text">هر مضمون، یک مسیر روشن.</span></h2><p>در صفحه هر رشته، سمسترها جداگانه نمایش داده می‌شوند. وارد سمستر شو، مضمون را انتخاب کن و منابعش را یک‌جا ببین.</p><ul class="check-list"><li>مضامین هر سمستر به‌صورت جداگانه</li><li>جزوه، لکچر، کتاب و سوالات امتحانی</li><li>امکان افزودن منبع با بررسی مدیر</li></ul><button class="btn btn-primary" id="exploreBtn">دیدن نمونه رشته <span>←</span></button></div></section>
+<section class="section materials-section" id="materials"><div class="section-heading"><div><span class="section-kicker">تازه‌های کتابخانه</span><h2>منابع نمونه</h2><p>این‌ها نمونه‌های نمایشی‌اند؛ می‌توانی منابع واقعی را بعداً اضافه کنی.</p></div><div class="material-tabs"><button class="active" data-material-filter="all">همه</button><button data-material-filter="notes">جزوه</button><button data-material-filter="exam">امتحان</button><button data-material-filter="book">کتاب</button></div></div><div class="materials-grid" id="materialsGrid"></div></section>
+<section class="contribute" id="how"><div class="contribute-icon">＋</div><div><span class="section-kicker">مشارکت دانشجویی</span><h2>منبع خوبی داری؟ با دیگران شریک کن.</h2><p>جزوه یا منبع درسی‌ات را پیشنهاد بده. برای حفظ کیفیت، انتشار منابع پس از بررسی مدیر انجام می‌شود.</p></div><button class="btn btn-light" id="uploadBottom">افزودن منبع <span>↗</span></button></section>
+</main>
+<footer class="footer"><a class="brand footer-brand" href="#"><span class="brand-mark">د</span><span>دانشجویان<small>دانش، برای همه</small></span></a><div class="footer-links"><a href="#universities">دانشگاه‌ها</a><a href="#fields">رشته‌ها</a><a href="#materials">منابع</a><a href="README.md">درباره پروژه</a></div><span class="copyright">© ۲۰۲۶ دانشجویان · نسخه نمایشی</span></footer>
+<div class="modal-backdrop" id="detailModal" aria-hidden="true"><section class="modal detail-modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle"><button class="modal-close" data-close aria-label="بستن">×</button><div id="detailContent"></div></section></div>
+<div class="modal-backdrop" id="uploadModal" aria-hidden="true"><section class="modal upload-modal" role="dialog" aria-modal="true" aria-labelledby="uploadTitle"><button class="modal-close" data-close aria-label="بستن">×</button><span class="section-kicker">مشارکت دانشجویی</span><h2 id="uploadTitle">پیشنهاد یک منبع درسی</h2><p class="modal-intro">این فرم در نسخه نمایشی است؛ برای دریافت واقعی فایل و ذخیره اطلاعات، باید بک‌اند و فضای ذخیره‌سازی متصل شود.</p><form id="uploadForm" class="upload-form"><label>نام منبع<input required name="title" placeholder="مثلاً جزوه برنامه‌نویسی ۱"></label><div class="form-row"><label>دانشگاه<select name="university" required><option value="">انتخاب کن</option><option>دانشگاه کابل</option><option>پوهنتون هرات</option><option>پوهنتون بلخ</option><option>دانشگاه ننگرهار</option><option>دانشگاه دیگر</option></select></label><label>نوع منبع<select name="type" required><option value="notes">جزوه</option><option value="book">کتاب</option><option value="exam">سوالات امتحانی</option><option value="lecture">لکچر</option></select></label></div><label>توضیحات<textarea name="description" rows="3" placeholder="رشته، سمستر و مضمون..."></textarea></label><label>لینک منبع (اختیاری)<input name="url" type="url" placeholder="https://..."></label><button class="btn btn-primary full-width" type="submit">ثبت پیشنهاد</button><p class="form-message" id="formMessage" role="status"></p></form></section></div>
+<div class="toast" id="toast" role="status"></div>
+<script src="app.js"></script>
+</body></html>
