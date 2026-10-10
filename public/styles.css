@@ -76,3 +76,76 @@ a.secondary{display:inline-block;text-decoration:none}.admin-nav-link{white-spac
   #contentDialog.group-view #panel-chat { padding:16px 5vw calc(16px + env(safe-area-inset-bottom)) !important; }
   #contentDialog.group-view .chat-list, #contentDialog.group-view .chat-room-heading, #contentDialog.group-view #chatForm, #contentDialog.group-view .chat-login-hint { max-width:1000px; margin-left:auto; margin-right:auto; }
 }
+
+
+/* FINAL viewport fix: native <dialog> has UA positioning/margins that can leave
+   a strip of the page visible on mobile. Override the dialog itself explicitly. */
+html, body { max-width:100%; overflow-x:hidden; }
+dialog#contentDialog[open] {
+  position:fixed !important;
+  inset:0 !important;
+  left:0 !important; right:0 !important; top:0 !important; bottom:0 !important;
+  margin:0 !important;
+  transform:none !important;
+  box-sizing:border-box !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:none !important;
+  height:100% !important;
+  min-height:100vh !important;
+  min-height:100dvh !important;
+  max-height:none !important;
+  border:0 !important;
+  border-radius:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+}
+dialog#contentDialog[open].group-view,
+dialog#contentDialog[open].page-view {
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+}
+dialog#contentDialog[open] * { box-sizing:border-box; min-width:0; }
+dialog#contentDialog[open] .dialog-head {
+  width:100% !important;
+  flex-shrink:0 !important;
+}
+dialog#contentDialog[open].group-view #panel-chat {
+  flex:1 1 0 !important;
+  min-height:0 !important;
+  width:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+}
+dialog#contentDialog[open].group-view .chat-list {
+  flex:1 1 0 !important;
+  min-height:0 !important;
+  max-height:none !important;
+  width:100% !important;
+  overflow-y:auto !important;
+}
+dialog#contentDialog[open].group-view #chatForm,
+dialog#contentDialog[open].group-view .chat-composer {
+  width:100% !important;
+  max-width:100% !important;
+}
+dialog#contentDialog[open].group-view .chat-composer button {
+  max-width:40% !important;
+}
+dialog#contentDialog[open].page-view #contentBody {
+  flex:1 1 0 !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+}
+@media(max-width:650px) {
+  dialog#contentDialog[open] .dialog-head {
+    padding:16px !important;
+    margin:0 !important;
+  }
+  dialog#contentDialog[open].group-view #contentMeta { padding:8px 16px !important; }
+  dialog#contentDialog[open].group-view #panel-chat {
+    padding:10px 12px max(10px, env(safe-area-inset-bottom)) !important;
+  }
+}
