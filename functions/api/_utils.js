@@ -1,6 +1,6 @@
 const enc = new TextEncoder();
 export function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...headers}})}
-export async function hashPassword(password,saltHex){const salt=saltHex?hexToBytes(saltHex):crypto.getRandomValues(new Uint8Array(16));const key=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:180000,hash:'SHA-256'},key,256);return `${bytesToHex(salt)}:${bytesToHex(new Uint8Array(bits))}`}
+export async function hashPassword(password,saltHex){const salt=saltHex?hexToBytes(saltHex):crypto.getRandomValues(new Uint8Array(16));const key=await crypto.subtle.importKey('raw',enc.encode(password),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},key,256);return `${bytesToHex(salt)}:${bytesToHex(new Uint8Array(bits))}`}
 export async function verifyPassword(password,stored){if(!stored||!stored.includes(':'))return false;const [salt,expected]=stored.split(':');const actual=(await hashPassword(password,salt)).split(':')[1];return constantTime(actual,expected)}
 function constantTime(a,b){if(typeof a!=='string'||typeof b!=='string'||a.length!==b.length)return false;let n=0;for(let i=0;i<a.length;i++)n|=a.charCodeAt(i)^b.charCodeAt(i);return n===0}
 function bytesToHex(a){return [...a].map(x=>x.toString(16).padStart(2,'0')).join('')}
