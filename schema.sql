@@ -175,3 +175,23 @@ CREATE INDEX IF NOT EXISTS idx_members_user_status ON class_members(user_id, sta
 CREATE INDEX IF NOT EXISTS idx_resources_class_status ON study_resources(class_id, status);
 CREATE INDEX IF NOT EXISTS idx_photos_class_status ON class_photos(class_id, status);
 CREATE INDEX IF NOT EXISTS idx_messages_group_created ON chat_messages(group_id, created_at);
+
+
+-- Simple pages and groups used by the current homepage.
+CREATE TABLE IF NOT EXISTS spaces (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL CHECK (kind IN ('page','group')),
+  title TEXT NOT NULL,
+  university TEXT NOT NULL,
+  field TEXT NOT NULL,
+  semester TEXT NOT NULL,
+  shift TEXT NOT NULL DEFAULT 'مشخص نشده',
+  password_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX IF NOT EXISTS idx_spaces_kind_created ON spaces(kind, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS space_notes (id TEXT PRIMARY KEY, space_id TEXT NOT NULL REFERENCES spaces(id) ON DELETE CASCADE, title TEXT NOT NULL, body TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
+CREATE INDEX IF NOT EXISTS idx_space_notes_space ON space_notes(space_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS space_messages (id TEXT PRIMARY KEY, space_id TEXT NOT NULL REFERENCES spaces(id) ON DELETE CASCADE, body TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
+CREATE INDEX IF NOT EXISTS idx_space_messages_space ON space_messages(space_id, created_at DESC);
