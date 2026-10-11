@@ -35,18 +35,8 @@ function render() {
   const shown = all.filter(x => x.kind === activeKind && [x.title,x.university,x.field,x.semester,x.shift].join(' ').toLocaleLowerCase().includes(q));
   $('#listing').innerHTML = shown.map(x => `<article class="card ${x.kind==='page'?'page-card':'group-card'}"><div class="cover-art"><span class="cover-symbol">${x.kind==='page'?'▤':'☏'}</span><span class="badge">🔒 خصوصی</span></div><div class="card-body"><div class="card-avatar">${x.kind==='page'?'📚':'👥'}</div><h3>${escapeHtml(x.title)}</h3><p>${x.kind==='page'?'صفحه درسی · نوت‌ها و منابع':'گروه صنفی · گفتگو و هماهنگی'}</p><div class="details"><span>${escapeHtml(x.university)}</span><span>${escapeHtml(x.field)}</span><span>${escapeHtml(x.semester)}</span><span>نوبت ${escapeHtml(x.shift)}</span></div><button class="enter" data-enter="${escapeHtml(x.id)}">${x.kind==='page'?'مشاهده صفحه':'ورود به گروه'}　›</button></div></article>`).join('');
   $('#empty').hidden = shown.length > 0; $('#listing').hidden = shown.length === 0; $('#emptyTitle').textContent = activeKind === 'page' ? 'هنوز صفحه‌ای ساخته نشده' : 'هنوز گروهی ساخته نشده';
-  // Card navigation is handled by a single delegated listener below.
-
+  $$('[data-enter]').forEach(b => b.addEventListener('click', () => startJoin(b.dataset.enter)));
 }
-// Delegated navigation survives card re-rendering and taps on nested elements.
-document.addEventListener('click', e => {
-  const button = e.target.closest('[data-enter]');
-  if (!button) return;
-  e.preventDefault();
-  e.stopPropagation();
-  try { startJoin(button.getAttribute('data-enter')); }
-  catch (error) { console.error('Open page/group:', error); alert('بازکردن صفحه یا گروه ممکن نشد. صفحه را تازه‌سازی کن.'); }
-});
 function startJoin(id, created = false) {
   joiningId = id; const item = (window.spaces || []).find(x => x.id === id); if (!item) return;
   $('#joinTitle').textContent = item.kind === 'page' ? 'ورود به صفحه' : 'ورود به گروه'; $('#joinDescription').textContent = `${item.title} • ${item.university} • ${item.field} • ${item.semester}`; $('#joinPassword').value = ''; $('#joinError').hidden = true; $('#joinDialog').showModal();
@@ -59,7 +49,7 @@ $('#joinForm').addEventListener('submit', async e => {
 async function openContent(item) {
   currentItem = item; const isPage = item.kind === 'page'; const dlg = $('#contentDialog'); dlg.dataset.kind = item.kind; dlg.classList.toggle('page-view', isPage); dlg.classList.toggle('group-view', !isPage); $('#contentType').textContent = isPage ? 'صفحه درسی' : 'گروه صنفی'; $('#contentTitle').textContent = item.title; $('#contentMeta').textContent = `${item.university} • ${item.field} • ${item.semester} • نوبت ${item.shift}`; $('#activeSemester').value = '1'; notes = []; messages = []; assets = {files:[],photos:[]}; renderNotes(); renderMessages(); renderAssets();
   $('#panel-overview h3').textContent = isPage ? 'به صفحه صنف خوش آمدی' : 'به گروه صنف خوش آمدی'; $('#panel-overview > p').textContent = isPage ? 'نوت‌ها، منابع، عکس‌ها و اطلاعیه‌های این صنف را در یک صفحه دنبال کن.' : 'برای هماهنگی با هم‌صنفی‌ها گفتگو کن، فایل بفرست و خاطرات گروه را نگه‌دار.'; $('#panel-overview .private-banner').textContent = isPage ? '📚 صفحه اختصاصی صنف؛ منابع درسی و پست‌ها به تفکیک سمستر' : '👥 گروه خصوصی صنف؛ گفتگو و هماهنگی اعضا';
-  $$('[data-panel=overview]').forEach(b => b.textContent = isPage ? 'درباره صفحه' : 'نمای کلی'); $$('[data-panel=notes]').forEach(b => b.textContent = isPage ? 'نوت‌های درسی' : 'نوت‌ها'); $$('[data-panel=files]').forEach(b => b.textContent = 'فایل‌ها'); $$('[data-panel=photos]').forEach(b => b.textContent = isPage ? 'عکس‌ها' : 'خاطرات'); $$('[data-panel=chat]').forEach(b => b.textContent = isPage ? '📰 پست‌ها' : '💬 گفتگو'); $('#panel-chat h3').textContent = isPage ? 'پست‌ها و اطلاعیه‌های صفحه' : 'گفتگوی اعضا'; $('#chatMessage').placeholder = isPage ? 'اطلاعیه یا مطلب درسی خود را بنویس…' : 'پیامی برای هم‌صنفی‌ها بنویس…'; $('#chatForm button[type=submit]').textContent = isPage ? 'انتشار پست' : 'ارسال پیام'; $('#panel-chat .form-hint').textContent = isPage ? 'پست‌ها برای اعضای واردشده در این صفحه نمایش داده می‌شوند.' : 'پیام‌های گروه برای اعضای واردشده نمایش داده می‌شوند.'; // Keep page tools on pages, but make groups a dedicated chat screen.
+  $$('[data-panel=overview]').forEach(b => b.textContent = isPage ? 'درباره صفحه' : 'نمای کلی'); $$('[data-panel=notes]').forEach(b => b.textContent = isPage ? 'نوت‌های درسی' : 'نوت‌ها'); $$('[data-panel=files]').forEach(b => b.textContent = 'فایل‌ها'); $$('[data-panel=photos]').forEach(b => b.textContent = isPage ? 'عکس‌ها' : 'خاطرات'); $$('[data-panel=chat]').forEach(b => b.textContent = isPage ? '📰 پست‌ها' : '💬 گفتگو'); $('#panel-chat h3').textContent = isPage ? 'پست‌ها و اطلاعیه‌های صفحه' : 'گفتگوی اعضا'; $('#chatMessage').placeholder = isPage ? 'اطلاعیه یا مطلب درسی خود را بنویس…' : 'پیامی برای هم‌صنفی‌ها بنویس…'; $('#chatForm button[type=submit]').textContent = isPage ? 'انتشار پست' : 'ارسال پیام'; ($('#panel-chat .form-hint') || {textContent:''}).textContent = isPage ? 'پست‌ها برای اعضای واردشده در این صفحه نمایش داده می‌شوند.' : 'پیام‌های گروه برای اعضای واردشده نمایش داده می‌شوند.'; // Keep page tools on pages, but make groups a dedicated chat screen.
   $$('.inside-tab').forEach(b => { b.hidden = !isPage && b.dataset.panel !== 'chat'; });
   $('#activeSemester').closest('.semester-picker').hidden = !isPage;
   $('#contentMeta').hidden = !isPage;
