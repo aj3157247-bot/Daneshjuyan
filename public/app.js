@@ -95,7 +95,7 @@ function postParts(body) { const value=String(body||''); const match=value.match
 function photoUrl(id) { return `/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(id)}?inline=1`; }
 $('#chatForm').addEventListener('submit', async e => {
   e.preventDefault(); const button=e.currentTarget.querySelector('button[type=submit]');
-  const input=$('#postPhoto'), file=input?.files?.[0], text=$('#chatMessage').value.trim();
+  const input=$('#postPhoto'), file=currentItem?.kind==='page'?input?.files?.[0]:null, text=$('#chatMessage').value.trim();
   if (!text && !file) {status('متن یا عکس انتخاب کن.');return;}
   button.disabled=true;
   try {
@@ -114,7 +114,14 @@ $('#chatForm').addEventListener('submit', async e => {
   finally{button.disabled=false;}
 });
 function renderMessages() {
- $('#chatList').innerHTML=messages.map(m=>{const post=postParts(m.body);return `<article class="message-card" data-message-id="${escapeHtml(m.id)}"><div class="share-item-actions"><button class="secondary small" type="button" data-share-post="${escapeHtml(m.id)}">🔗 اشتراک ${currentItem?.kind==='page'?'پست':'پیام'}</button></div>${post.photoId?`<button type="button" class="photo-preview-trigger" data-photo-open="${photoUrl(post.photoId)}" aria-label="بزرگ‌نمایی عکس پست"><img class="post-photo" loading="lazy" src="${photoUrl(post.photoId)}" alt="عکس پست"></button>`:''}${post.text?`<p>${escapeHtml(post.text)}</p>`:''}<small>${escapeHtml(m.createdAt||'')}</small></article>`;}).join('')||'<p>هنوز پیامی فرستاده نشده است.</p>';
+  const canDeletePosts=!!(window.spaces||[]).find(s=>s.id===currentItem?.id)?.canDelete;
+ $('#chatList').innerHTML=messages.map(m=>{const post=postParts(m.body);return `<article class="message-card" data-message-id="${escapeHtml(m.id)}"><div class="share-item-actions"><button class="secondary small" type="button" data-share-post="${escapeHtml(m.id)}">🔗 اشتراک ${currentItem?.kind==='page'?'پست':'پیام'}</button>${canDeletePosts?`<button class="secondary small" type="button" data-delete-post="${escapeHtml(m.id)}">🗑 حذف ${currentItem?.kind==='page'?'پست':'پیام'}</button>`:''}</div>${post.photoId?`<button type="button" class="photo-preview-trigger" data-photo-open="${photoUrl(post.photoId)}" aria-label="بزرگ‌نمایی عکس پست"><img class="post-photo" loading="lazy" src="${photoUrl(post.photoId)}" alt="عکس پست"></button>`:''}${post.text?`<p>${escapeHtml(post.text)}</p>`:''}<small>${escapeHtml(m.createdAt||'')}</small></article>`;}).join('')||'<p>هنوز پیامی فرستاده نشده است.</p>';
+  $$('[data-delete-post]').forEach(b=>b.addEventListener('click',async()=>{
+    if(!currentItem)return;
+    if(!confirm('اخطار: این پست یا پیام برای همیشه حذف می‌شود و قابل بازگردانی نیست. آیا مطمئن هستی؟'))return;
+    try{await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/messages?id=${encodeURIComponent(b.dataset.deletePost)}`,{method:'DELETE'});messages=messages.filter(m=>m.id!==b.dataset.deletePost);renderMessages();status('پست یا پیام حذف شد.');}
+    catch(err){status('حذف انجام نشد: '+err.message);}
+  }));
  $$('[data-share-post]').forEach(b=>b.addEventListener('click',()=>shareContent('post',b.dataset.sharePost,currentItem?.title)));
 }
 async function uploadAsset(form, type) {
