@@ -1,4 +1,5 @@
 import {json,validSession,requireDb} from '../../_utils.js';
+import {isSpaceOwner} from '../../_owner.js';
 // D1-only storage: keep each asset below D1's per-row limits; no R2 account/payment required.
 const MAX=900*1024;
 const allowedDocs=new Set(['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.ms-powerpoint','application/vnd.openxmlformats-officedocument.presentationml.presentation','text/plain']);
@@ -13,7 +14,8 @@ export async function onRequestGet({request,env,params}){
    env.DB.prepare('SELECT id,title,file_name AS fileName,mime_type AS mimeType,file_size AS fileSize,created_at AS createdAt FROM space_files WHERE space_id=? AND semester_number=? ORDER BY created_at DESC LIMIT 100').bind(params.id,n).all(),
    env.DB.prepare('SELECT id,caption,file_name AS fileName,mime_type AS mimeType,file_size AS fileSize,created_at AS createdAt FROM space_photos WHERE space_id=? AND semester_number=? ORDER BY created_at DESC LIMIT 100').bind(params.id,n).all()
   ]);
-  return json({files:f.results||[],photos:(p.results||[]).map(x=>({...x,url:`/api/spaces/${encodeURIComponent(params.id)}/asset/${encodeURIComponent(x.id)}?inline=1`})),semester:n});
+  const canDelete=await isSpaceOwner(request,env,params.id);
+  return json({canDelete,files:f.results||[],photos:(p.results||[]).map(x=>({...x,url:`/api/spaces/${encodeURIComponent(params.id)}/asset/${encodeURIComponent(x.id)}?inline=1`})),semester:n});
  }catch(e){return json({error:'فهرست فایل‌ها بارگذاری نشد. فایل MIGRATION-D1-NO-R2.sql را در D1 اجرا کن.'},503)}
 }
 export async function onRequestPost({request,env,params}){
