@@ -10,6 +10,12 @@ export async function onRequestGet({request,env,params}){
   if(!blob?.data)return json({error:'محتوای فایل پیدا نشد؛ فایل را دوباره بارگذاری کن.'},404);
   const inline=new URL(request.url).searchParams.get('inline')==='1'&&row.mimeType.startsWith('image/');
   const headers=new Headers({'Content-Type':row.mimeType,'Content-Disposition':`${inline?'inline':'attachment'}; filename="${String(row.fileName).replace(/["\r\n]/g,'_')}"`,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'});
-  return new Response(blob.data,{headers});
+  // D1 returns BLOB values as arrays of byte numbers; Response(array) corrupts images.
+  const bytes = blob.data instanceof ArrayBuffer ? new Uint8Array(blob.data)
+    : ArrayBuffer.isView(blob.data) ? new Uint8Array(blob.data.buffer,blob.data.byteOffset,blob.data.byteLength)
+    : Array.isArray(blob.data) ? new Uint8Array(blob.data)
+    : null;
+  if(!bytes)return json({error:'فرمت فایل ذخیره‌شده نامعتبر است.'},503);
+  return new Response(bytes,{headers});
  }catch(e){return json({error:'دریافت فایل ناموفق بود.'},503)}
 }
