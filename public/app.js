@@ -56,7 +56,7 @@ async function openContent(item) {
   $('#contentMeta').hidden = !isPage;
   let shareButton = $('#shareCurrentSpace'); if(!shareButton){shareButton=document.createElement('button');shareButton.id='shareCurrentSpace';shareButton.type='button';shareButton.className='secondary small';shareButton.textContent='🔗 اشتراک‌گذاری';$('#contentTitle').after(shareButton);}
   shareButton.onclick=()=>shareLink(new URL('/share?space='+encodeURIComponent(item.id),location.origin).href,item.title);
-  showPanel('chat'); dlg.showModal();
+  showPanel('chat'); dlg.showModal(); renderAds('space', dlg);
   try { await api(`/api/spaces/${encodeURIComponent(item.id)}/content`); await loadSemesterContent(); const m = await api(`/api/spaces/${encodeURIComponent(item.id)}/messages`); messages = m.messages || []; renderMessages(); await navigateSharedContent(); }
   catch (err) { status('محتوا بارگذاری نشد: ' + err.message); }
 }
@@ -114,7 +114,7 @@ function communityDay(value) { const date = new Date(value); return Number.isNaN
 function communityAvatar(name) { return (name || 'د').trim().charAt(0); }
 function updateCommunityAccess() { const signedIn = !!currentStudent; $('#communityForm').hidden = !signedIn; $('#communityJoin').hidden = signedIn; }
 $('#shareCommunity').addEventListener('click', () => shareLink(new URL('/share?community=1',location.origin).href,'گروه عمومی دانشجویان'));
-$('#communityTop').addEventListener('click', async () => { communityDialog.showModal(); await refreshStudent(); updateCommunityAccess(); await loadCommunity(true); });
+$('#communityTop').addEventListener('click', async () => { communityDialog.showModal(); renderAds('community', communityDialog.querySelector('.chat-shell')); await refreshStudent(); updateCommunityAccess(); await loadCommunity(true); });
 $('#communityJoin').addEventListener('click', () => { communityDialog.close(); openAccount(); });
 $('#communityRefresh').addEventListener('click', () => loadCommunity(true));
 async function loadCommunity(force=false) {
@@ -144,8 +144,13 @@ $('#communityForm').addEventListener('submit', async e => {
  finally { send.disabled = false; }
 });
 setInterval(async () => { if ($('#communityDialog').open) await loadCommunity(); if ($('#contentDialog').open && currentItem) { try { const d = await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/messages`); messages = d.messages || []; renderMessages(); } catch {} } }, 5000);
+
+function adVisitor(){let v=localStorage.getItem('dj_visitor_id');if(!v){v=(crypto.randomUUID?crypto.randomUUID():`${Date.now()}${Math.random()}`).replace(/-/g,'');localStorage.setItem('dj_visitor_id',v)}return v}
+async function renderAds(placement,host){if(!host)return;try{const d=await api('/api/ads?placement='+encodeURIComponent(placement));const ads=d.ads||[];let slot=host.querySelector(':scope > .dj-ad-slot[data-placement="'+placement+'"]');if(!slot){slot=document.createElement('div');slot.className='dj-ad-slot';slot.dataset.placement=placement;host.prepend(slot)}slot.innerHTML=ads.slice(0,1).map(a=>`<a class="dj-ad" href="${escapeHtml(a.targetUrl)}" target="_blank" rel="sponsored noopener" data-ad-id="${escapeHtml(a.id)}"><img src="${escapeHtml(a.imageUrl||'/logo.svg')}" alt=""><span class="dj-ad-copy"><small>تبلیغات</small><b>${escapeHtml(a.title)}</b><p>${escapeHtml(a.description||'')}</p></span><span class="dj-ad-cta">مشاهده ↗</span></a>`).join('');ads.slice(0,1).forEach(a=>fetch('/api/ads',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adId:a.id,eventType:'impression',visitorId:adVisitor()})}).catch(()=>{}));slot.querySelectorAll('[data-ad-id]').forEach(a=>a.addEventListener('click',()=>{navigator.sendBeacon?.('/api/ads',new Blob([JSON.stringify({adId:a.dataset.adId,eventType:'click',visitorId:adVisitor()})],{type:'application/json'}))||fetch('/api/ads',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({adId:a.dataset.adId,eventType:'click',visitorId:adVisitor()}),keepalive:true}).catch(()=>{})}))}catch{}}
+
 function trackPage() { let visitor = localStorage.getItem('dj_visitor_id'); if (!visitor) { visitor = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`).replace(/-/g,''); localStorage.setItem('dj_visitor_id', visitor); } fetch('/api/track', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({visitorId:visitor, path:location.pathname})}).catch(() => {}); }
 trackPage();
+renderAds('home', document.querySelector('.toolbar')?.parentElement);
 loadSpaces();
 
 async function shareLink(url,title){
