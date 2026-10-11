@@ -106,3 +106,7 @@ a.secondary{display:inline-block;text-decoration:none}.admin-nav-link{white-spac
 .content-dialog.group-view #chatForm{grid-template-columns:minmax(0,1fr) auto!important}
 .content-dialog.group-view #chatMessage{width:100%;min-width:0;grid-column:1}
 .content-dialog.group-view #chatForm button[type=submit]{grid-column:2}
+
+/* Group conversations do not use the semester selector. */
+#contentDialog.group-view .semester-picker { display: none !important; }
+#contentDialog .semester-picker[hidden] { display: none !important; }
