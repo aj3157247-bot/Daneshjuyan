@@ -85,8 +85,15 @@ $('#noteForm').addEventListener('submit', async e => {
   catch (err) { status('نوت ذخیره نشد: ' + err.message); }
 });
 function renderNotes() {
-  $('#notesList').innerHTML = notes.length ? notes.map(n => `<article class="note-card"><div class="note-top"><h4>${escapeHtml(n.title)}</h4><div class="share-item-actions"><button class="secondary small" type="button" data-copy-note="${escapeHtml(n.id)}">📋 کپی نوت</button><button class="secondary small" type="button" data-share-note="${escapeHtml(n.id)}">🔗 اشتراک نوت</button></div></div><p>${escapeHtml(n.body)}</p><small>${escapeHtml(n.createdAt || '')}</small></article>`).join('') : '<p>هنوز نوتی اضافه نشده است. می‌توانی نوت را از موبایل کپی و اینجا بچسبانی.</p>';
+  $('#notesList').innerHTML = notes.length ? notes.map(n => `<article class="note-card"><div class="note-top"><h4>${escapeHtml(n.title)}</h4><div class="share-item-actions"><button class="secondary small" type="button" data-copy-note="${escapeHtml(n.id)}">📋 کپی نوت</button><button class="secondary small" type="button" data-share-note="${escapeHtml(n.id)}">🔗 اشتراک نوت</button>${(window.spaces||[]).find(x=>x.id===currentItem?.id)?.canDelete?`<button class="secondary small" type="button" data-delete-note="${escapeHtml(n.id)}">🗑 حذف نوت</button>`:""}</div></div><p>${escapeHtml(n.body)}</p><small>${escapeHtml(n.createdAt || '')}</small></article>`).join('') : '<p>هنوز نوتی اضافه نشده است. می‌توانی نوت را از موبایل کپی و اینجا بچسبانی.</p>';
   $$('[data-share-note]').forEach(b=>b.addEventListener('click',()=>shareContent('note',b.dataset.shareNote,notes.find(n=>n.id===b.dataset.shareNote)?.title)));
+  $$('[data-delete-note]').forEach(b => b.addEventListener('click', async () => {
+    const id=b.dataset.deleteNote; const note=notes.find(n=>n.id===id);
+    if(!note || !confirm(`اخطار: نوت «${note.title}» برای همیشه حذف می‌شود و قابل بازگردانی نیست. آیا مطمئن هستی؟`)) return;
+    b.disabled=true;
+    try { await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/semester-notes?noteId=${encodeURIComponent(id)}`,{method:'DELETE'}); notes=notes.filter(n=>n.id!==id);renderNotes(); }
+    catch(err){b.disabled=false;alert('حذف نوت انجام نشد: '+err.message);}
+  }));
   $$('[data-copy-note]').forEach(b => b.addEventListener('click', async () => { const n = notes.find(x => x.id === b.dataset.copyNote); try { await navigator.clipboard.writeText(n?.body || ''); alert('نوت کپی شد.'); } catch { alert('کپی خودکار ممکن نشد؛ متن را انتخاب و کپی کن.'); } }));
 }
 // Post photos use the existing private photo storage, so they also appear in the Photos tab.
