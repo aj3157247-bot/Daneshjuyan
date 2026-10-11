@@ -20,7 +20,7 @@ export async function onRequestPost({request,env}){
   // Support both the current schema and older live D1 tables that still have name/major/type columns.
   const info=await env.DB.prepare('PRAGMA table_info(spaces)').all();
   const available=new Set((info.results||[]).map(c=>c.name));
-  const values={id,kind,title,university,field,semester,shift,password_hash:passwordHash,name:title,major:field,type:kind};
+  const values={id,kind,title,university,field,semester,shift,password_hash:passwordHash,owner_student_id:auth.student.id,name:title,major:field,type:kind};
   const columns=Object.keys(values).filter(k=>available.has(k));
   if(!columns.includes('id')||!columns.includes('password_hash'))return json({error:'ساختار جدول spaces کامل نیست؛ فایل MIGRATION-D1-NO-R2.sql را اجرا کن.'},503);
   await env.DB.prepare(`INSERT INTO spaces (${columns.join(',')}) VALUES (${columns.map(()=>'?').join(',')})`).bind(...columns.map(k=>values[k])).run();
