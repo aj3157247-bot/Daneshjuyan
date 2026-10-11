@@ -1,4 +1,5 @@
 import {json,hashPassword,requireDb} from './_utils.js';
+import {requireStudent} from './_student.js';
 export async function onRequestGet({env}){
  try{
   requireDb(env);
@@ -9,6 +10,7 @@ export async function onRequestGet({env}){
 export async function onRequestPost({request,env}){
  try{
   requireDb(env);
+  const auth=await requireStudent(request,env); if(auth.error)return auth.error;
   let body;try{body=await request.json()}catch{return json({error:'داده‌های فرم معتبر نیست.'},400)}
   const kind=['page','group'].includes(body.kind)?body.kind:null;
   const title=clean(body.title,80),university=clean(body.university,100),field=clean(body.field,100),semester=clean(body.semester,30),shift=clean(body.shift,30)||'مشخص نشده',password=String(body.password||'');
