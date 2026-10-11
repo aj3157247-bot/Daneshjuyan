@@ -118,10 +118,18 @@ async function uploadAsset(form, type) {
 $('#fileUploadForm').addEventListener('submit', e => { e.preventDefault(); uploadAsset(e.currentTarget, 'file'); });
 $('#photoUploadForm').addEventListener('submit', e => { e.preventDefault(); uploadAsset(e.currentTarget, 'photo'); });
 function renderAssets() {
-  const fs = assets.files || [], ps = assets.photos || [];
-  $('#filesList').innerHTML = fs.length ? fs.map(f => `<article class="note-card"><h4>${escapeHtml(f.title || f.fileName)}</h4><p>${escapeHtml(f.fileName)} • ${Math.max(1, Math.round((f.fileSize || 0)/1024))} KB</p><div class="share-item-actions"><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(f.id)}">دانلود فایل</a><button class="secondary small" type="button" data-share-file="${escapeHtml(f.id)}">🔗 اشتراک فایل</button></div></article>`).join('') : '<p>در این سمستر هنوز فایلی اضافه نشده است.</p>';
+  const fs = assets.files || [], ps = assets.photos || [], canDelete = !!assets.canDelete;
+  $('#filesList').innerHTML = fs.length ? fs.map(f => `<article class="note-card"><h4>${escapeHtml(f.title || f.fileName)}</h4><p>${escapeHtml(f.fileName)} • ${Math.max(1, Math.round((f.fileSize || 0)/1024))} KB</p><div class="share-item-actions"><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(f.id)}">دانلود فایل</a><button class="secondary small" type="button" data-share-file="${escapeHtml(f.id)}">🔗 اشتراک فایل</button>${canDelete?`<button class="secondary small" type="button" data-delete-asset="${escapeHtml(f.id)}" data-delete-type="file">🗑 حذف فایل</button>`:''}</div></article>`).join('') : '<p>در این سمستر هنوز فایلی اضافه نشده است.</p>';
   $$('[data-share-file]').forEach(b=>b.addEventListener('click',()=>shareContent('file',b.dataset.shareFile,fs.find(f=>f.id===b.dataset.shareFile)?.title)));
-  $('#photosList').innerHTML = ps.length ? ps.map(p => `<article class="note-card photo-card"><button type="button" class="photo-preview-trigger" data-photo-open="${photoUrl(p.id)}" data-photo-caption="${escapeHtml(p.caption || p.fileName)}" aria-label="نمایش عکس در اندازه بزرگ"><img loading="lazy" alt="${escapeHtml(p.caption || p.fileName)}" src="${photoUrl(p.id)}"></button><p class="photo-caption">${escapeHtml(p.caption || '')}</p><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(p.id)}">دانلود عکس</a></article>`).join('') : '<p>هنوز عکسی ثبت نشده است.</p>';
+
+  $('#photosList').innerHTML = ps.length ? ps.map(p => `<article class="note-card photo-card"><button type="button" class="photo-preview-trigger" data-photo-open="${photoUrl(p.id)}" data-photo-caption="${escapeHtml(p.caption || p.fileName)}" aria-label="نمایش عکس در اندازه بزرگ"><img loading="lazy" alt="${escapeHtml(p.caption || p.fileName)}" src="${photoUrl(p.id)}"></button><p class="photo-caption">${escapeHtml(p.caption || '')}</p><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(p.id)}">دانلود عکس</a>${canDelete?`<button class="secondary small" type="button" data-delete-asset="${escapeHtml(p.id)}" data-delete-type="photo">🗑 حذف عکس</button>`:''}</article>`).join('') : '<p>هنوز عکسی ثبت نشده است.</p>';
+  $$('[data-delete-asset]').forEach(b=>b.addEventListener('click',async()=>{
+    const type=b.dataset.deleteType;
+    if(!confirm(`آیا از حذف دائمی ${type==='photo'?'این عکس':'این فایل'} مطمئن هستی؟`))return;
+    b.disabled=true;
+    try{await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/assets/${encodeURIComponent(b.dataset.deleteAsset)}?type=${type}`,{method:'DELETE'});await loadSemesterContent();status('مورد حذف شد.');}
+    catch(e){status(e.message);b.disabled=false;}
+  }));
 }
 let currentStudent=null;
 async function refreshStudent(){try{const d=await api('/api/account/me');currentStudent=d.student||null;}catch{currentStudent=null;}$('#accountTop').textContent=currentStudent?`👤 ${currentStudent.firstName}`:'👤 ورود / ثبت‌نام';$('#accountGreeting').textContent=currentStudent?`وارد شده: ${currentStudent.firstName} ${currentStudent.surname}`:'برای ساخت صفحه، گروه و ارسال پیام ثبت‌نام کن.';$('#accountForm').hidden=!!currentStudent;$('#studentLogout').hidden=!currentStudent;return currentStudent;}
