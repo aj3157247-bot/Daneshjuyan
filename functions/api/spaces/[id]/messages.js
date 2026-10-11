@@ -1,5 +1,6 @@
 import {json,validSession,requireDb} from '../../_utils.js';
 import {requireStudent} from '../../_student.js';
+import {isSpaceOwner} from '../../_owner.js';
 export async function onRequestGet({request,env,params}) {
  try { requireDb(env); if(!env.SESSION_SECRET||!await validSession(request,params.id,env.SESSION_SECRET))return json({error:'برای دیدن گفتگو باید رمز گروه را وارد کنی.'},401);
   const {results}=await env.DB.prepare(`SELECT m.id,m.body,m.created_at AS createdAt,m.author_id AS authorId,
@@ -16,4 +17,17 @@ export async function onRequestPost({request,env,params}) {
   const id=crypto.randomUUID();await env.DB.prepare('INSERT INTO space_messages(id,space_id,body,author_id) VALUES(?,?,?,?)').bind(id,params.id,body,auth.student.id).run();
   return json({message:{id,body,authorId:auth.student.id,authorName:`${auth.student.firstName} ${auth.student.surname}`,createdAt:new Date().toISOString()}},201);
  } catch(e) {const msg=String(e?.message||'');if(msg.includes('no such column: author_id')||msg.includes('no such table: student_accounts'))return json({error:'ساختار چت هنوز به‌روزرسانی نشده؛ فایل MIGRATION-STUDENT-CHAT.sql را اجرا کن.'},503);return json({error:msg||'ارسال پیام انجام نشد.'},503)}
+}
+
+// Only the verified owner of this specific space may delete its posts/messages.
+export async function onRequestDelete({request,env,params}) {
+ try {
+  requireDb(env);
+  const id=new URL(request.url).searchParams.get('id');
+  if(!id||!/^[0-9a-f-]{36}$/i.test(id))return json({error:'شناسه پست معتبر نیست.'},400);
+  if(!await isSpaceOwner(request,env,params.id))return json({error:'فقط سازنده صفحه یا گروه می‌تواند پست‌ها را حذف کند.'},403);
+  const result=await env.DB.prepare('DELETE FROM space_messages WHERE id=? AND space_id=?').bind(id,params.id).run();
+  if(!result.meta?.changes)return json({error:'پست پیدا نشد.'},404);
+  return json({ok:true});
+ } catch(e) {return json({error:e.message||'حذف انجام نشد.'},503)}
 }
