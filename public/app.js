@@ -19,7 +19,7 @@ async function api(path, options = {}) {
   return data;
 }
 async function loadSpaces() {
-  try { const d = await api('/api/spaces'); window.spaces = d.spaces || []; status(''); render(); }
+  try { const d = await api('/api/spaces'); window.spaces = d.spaces || []; status(''); render(); if(!window._sharedSpaceOpened){window._sharedSpaceOpened=true;openSharedDestination();} }
   catch { window.spaces = []; render(); status('Backend یا پایگاه داده D1 هنوز آماده نیست.'); }
 }
 $('#createForm').addEventListener('submit', async e => {
@@ -33,9 +33,10 @@ $('#createForm').addEventListener('submit', async e => {
 function render() {
   const q = $('#search').value.trim().toLocaleLowerCase(); const all = window.spaces || [];
   const shown = all.filter(x => x.kind === activeKind && [x.title,x.university,x.field,x.semester,x.shift].join(' ').toLocaleLowerCase().includes(q));
-  $('#listing').innerHTML = shown.map(x => `<article class="card ${x.kind==='page'?'page-card':'group-card'}"><div class="cover-art"><span class="cover-symbol">${x.kind==='page'?'▤':'☏'}</span><span class="badge">🔒 خصوصی</span></div><div class="card-body"><div class="card-avatar">${x.kind==='page'?'📚':'👥'}</div><h3>${escapeHtml(x.title)}</h3><p>${x.kind==='page'?'صفحه درسی · نوت‌ها و منابع':'گروه صنفی · گفتگو و هماهنگی'}</p><div class="details"><span>${escapeHtml(x.university)}</span><span>${escapeHtml(x.field)}</span><span>${escapeHtml(x.semester)}</span><span>نوبت ${escapeHtml(x.shift)}</span></div><button class="enter" data-enter="${escapeHtml(x.id)}">${x.kind==='page'?'مشاهده صفحه':'ورود به گروه'}　›</button></div></article>`).join('');
+  $('#listing').innerHTML = shown.map(x => `<article class="card ${x.kind==='page'?'page-card':'group-card'}"><div class="cover-art"><span class="cover-symbol">${x.kind==='page'?'▤':'☏'}</span><span class="badge">🔒 خصوصی</span></div><div class="card-body"><div class="card-avatar">${x.kind==='page'?'📚':'👥'}</div><h3>${escapeHtml(x.title)}</h3><p>${x.kind==='page'?'صفحه درسی · نوت‌ها و منابع':'گروه صنفی · گفتگو و هماهنگی'}</p><div class="details"><span>${escapeHtml(x.university)}</span><span>${escapeHtml(x.field)}</span><span>${escapeHtml(x.semester)}</span><span>نوبت ${escapeHtml(x.shift)}</span></div><button class="enter" data-enter="${escapeHtml(x.id)}">${x.kind==='page'?'مشاهده صفحه':'ورود به گروه'}　›</button><button class="share-card" type="button" data-share-space="${escapeHtml(x.id)}">🔗 اشتراک‌گذاری</button></div></article>`).join('');
   $('#empty').hidden = shown.length > 0; $('#listing').hidden = shown.length === 0; $('#emptyTitle').textContent = activeKind === 'page' ? 'هنوز صفحه‌ای ساخته نشده' : 'هنوز گروهی ساخته نشده';
   $$('[data-enter]').forEach(b => b.addEventListener('click', () => startJoin(b.dataset.enter)));
+  $$('[data-share-space]').forEach(b => b.addEventListener('click', () => shareLink(new URL('/?space='+encodeURIComponent(b.dataset.shareSpace),location.origin).href, 'صفحه یا گروه دانشجویان')));
 }
 function startJoin(id, created = false) {
   joiningId = id; const item = (window.spaces || []).find(x => x.id === id); if (!item) return;
@@ -53,6 +54,8 @@ async function openContent(item) {
   $$('.inside-tab').forEach(b => { b.hidden = !isPage && b.dataset.panel !== 'chat'; });
   $('#activeSemester').closest('.semester-picker').hidden = !isPage;
   $('#contentMeta').hidden = !isPage;
+  let shareButton = $('#shareCurrentSpace'); if(!shareButton){shareButton=document.createElement('button');shareButton.id='shareCurrentSpace';shareButton.type='button';shareButton.className='secondary small';shareButton.textContent='🔗 اشتراک‌گذاری';$('#contentTitle').after(shareButton);}
+  shareButton.onclick=()=>shareLink(new URL('/?space='+encodeURIComponent(item.id),location.origin).href,item.title);
   showPanel('chat'); dlg.showModal();
   try { await api(`/api/spaces/${encodeURIComponent(item.id)}/content`); await loadSemesterContent(); const m = await api(`/api/spaces/${encodeURIComponent(item.id)}/messages`); messages = m.messages || []; renderMessages(); }
   catch (err) { status('محتوا بارگذاری نشد: ' + err.message); }
@@ -73,7 +76,7 @@ $('#noteForm').addEventListener('submit', async e => {
   catch (err) { status('نوت ذخیره نشد: ' + err.message); }
 });
 function renderNotes() {
-  $('#notesList').innerHTML = notes.length ? notes.map(n => `<article class="note-card"><h4>${escapeHtml(n.title)}</h4><p>${escapeHtml(n.body)}</p><small>${escapeHtml(n.createdAt || '')}</small><button class="secondary small" type="button" data-copy-note="${escapeHtml(n.id)}">کپی نوت</button></article>`).join('') : '<p>هنوز نوتی اضافه نشده است. می‌توانی نوت را از موبایل کپی و اینجا بچسبانی.</p>';
+  $('#notesList').innerHTML = notes.length ? notes.map(n => `<article class="note-card"><div class="note-top"><h4>${escapeHtml(n.title)}</h4><button class="secondary small" type="button" data-copy-note="${escapeHtml(n.id)}">📋 کپی نوت</button></div><p>${escapeHtml(n.body)}</p><small>${escapeHtml(n.createdAt || '')}</small></article>`).join('') : '<p>هنوز نوتی اضافه نشده است. می‌توانی نوت را از موبایل کپی و اینجا بچسبانی.</p>';
   $$('[data-copy-note]').forEach(b => b.addEventListener('click', async () => { const n = notes.find(x => x.id === b.dataset.copyNote); try { await navigator.clipboard.writeText(n?.body || ''); alert('نوت کپی شد.'); } catch { alert('کپی خودکار ممکن نشد؛ متن را انتخاب و کپی کن.'); } }));
 }
 $('#chatForm').addEventListener('submit', async e => { e.preventDefault(); try { const body = $('#chatMessage').value.trim(); const d = await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/messages`, {method:'POST', body:JSON.stringify({body})}); messages.push(d.message); $('#chatMessage').value = ''; renderMessages(); } catch (err) { status('پیام ارسال نشد: ' + err.message); } });
@@ -108,6 +111,7 @@ function communityTime(value) { const date = new Date(value); return Number.isNa
 function communityDay(value) { const date = new Date(value); return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('fa-AF', {year:'numeric',month:'long',day:'numeric'}); }
 function communityAvatar(name) { return (name || 'د').trim().charAt(0); }
 function updateCommunityAccess() { const signedIn = !!currentStudent; $('#communityForm').hidden = !signedIn; $('#communityJoin').hidden = signedIn; }
+$('#shareCommunity').addEventListener('click', () => shareLink(new URL('/?community=1',location.origin).href,'گروه عمومی دانشجویان'));
 $('#communityTop').addEventListener('click', async () => { communityDialog.showModal(); await refreshStudent(); updateCommunityAccess(); await loadCommunity(true); });
 $('#communityJoin').addEventListener('click', () => { communityDialog.close(); openAccount(); });
 $('#communityRefresh').addEventListener('click', () => loadCommunity(true));
@@ -141,3 +145,17 @@ setInterval(async () => { if ($('#communityDialog').open) await loadCommunity();
 function trackPage() { let visitor = localStorage.getItem('dj_visitor_id'); if (!visitor) { visitor = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`).replace(/-/g,''); localStorage.setItem('dj_visitor_id', visitor); } fetch('/api/track', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({visitorId:visitor, path:location.pathname})}).catch(() => {}); }
 trackPage();
 loadSpaces();
+
+async function shareLink(url,title){
+ try { if(navigator.share){await navigator.share({title,url});return;} } catch(e){if(e.name==='AbortError')return;}
+ try {await navigator.clipboard.writeText(url);alert('لینک کپی شد؛ حالا می‌توانی آن را برای دوستانت بفرستی.');}
+ catch {window.prompt('لینک اشتراک‌گذاری را کپی کن:',url);}
+}
+function openSharedDestination(){
+ const query=new URLSearchParams(location.search);
+ if(query.get('community')==='1'){$('#communityTop')?.click();return;}
+ const id=query.get('space'); if(!id)return;
+ const item=(window.spaces||[]).find(x=>x.id===id);
+ if(item)startJoin(id);
+}
+window.addEventListener('load',()=>setTimeout(openSharedDestination,1000));
