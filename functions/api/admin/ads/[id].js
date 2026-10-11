@@ -1,1 +1,2 @@
-
+import {json,requireDb} from '../../_utils.js';import {isAdmin,adminRequired} from '../../_admin.js';
+export async function onRequest({request,env,params}){try{if(!await isAdmin(request,env))return adminRequired();requireDb(env);const id=params.id;if(request.method==='PATCH'){const b=await request.json();if(b.action==='toggle'){await env.DB.prepare("UPDATE ads SET status=CASE WHEN status='active' THEN 'paused' ELSE 'active' END WHERE id=?").bind(id).run();return json({ok:true})}return json({error:'عملیات نامعتبر است.'},400)}if(request.method==='DELETE'){await env.DB.prepare('DELETE FROM ads WHERE id=?').bind(id).run();return json({ok:true})}return json({error:'روش نامعتبر است.'},405)}catch(e){return json({error:e.message||'خطا'},503)}}
