@@ -105,7 +105,7 @@ $('#chatForm').addEventListener('submit', async e => {
   finally{button.disabled=false;}
 });
 function renderMessages() {
- $('#chatList').innerHTML=messages.map(m=>{const post=postParts(m.body);return `<article class="message-card" data-message-id="${escapeHtml(m.id)}"><div class="share-item-actions"><button class="secondary small" type="button" data-share-post="${escapeHtml(m.id)}">🔗 اشتراک ${currentItem?.kind==='page'?'پست':'پیام'}</button></div>${post.photoId?`<a href="${photoUrl(post.photoId)}" target="_blank" rel="noopener"><img class="post-photo" loading="lazy" src="${photoUrl(post.photoId)}" alt="عکس پست"></a>`:''}${post.text?`<p>${escapeHtml(post.text)}</p>`:''}<small>${escapeHtml(m.createdAt||'')}</small></article>`;}).join('')||'<p>هنوز پیامی فرستاده نشده است.</p>';
+ $('#chatList').innerHTML=messages.map(m=>{const post=postParts(m.body);return `<article class="message-card" data-message-id="${escapeHtml(m.id)}"><div class="share-item-actions"><button class="secondary small" type="button" data-share-post="${escapeHtml(m.id)}">🔗 اشتراک ${currentItem?.kind==='page'?'پست':'پیام'}</button></div>${post.photoId?`<button type="button" class="photo-preview-trigger" data-photo-open="${photoUrl(post.photoId)}" aria-label="بزرگ‌نمایی عکس پست"><img class="post-photo" loading="lazy" src="${photoUrl(post.photoId)}" alt="عکس پست"></button>`:''}${post.text?`<p>${escapeHtml(post.text)}</p>`:''}<small>${escapeHtml(m.createdAt||'')}</small></article>`;}).join('')||'<p>هنوز پیامی فرستاده نشده است.</p>';
  $$('[data-share-post]').forEach(b=>b.addEventListener('click',()=>shareContent('post',b.dataset.sharePost,currentItem?.title)));
 }
 async function uploadAsset(form, type) {
@@ -121,7 +121,7 @@ function renderAssets() {
   const fs = assets.files || [], ps = assets.photos || [];
   $('#filesList').innerHTML = fs.length ? fs.map(f => `<article class="note-card"><h4>${escapeHtml(f.title || f.fileName)}</h4><p>${escapeHtml(f.fileName)} • ${Math.max(1, Math.round((f.fileSize || 0)/1024))} KB</p><div class="share-item-actions"><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(f.id)}">دانلود فایل</a><button class="secondary small" type="button" data-share-file="${escapeHtml(f.id)}">🔗 اشتراک فایل</button></div></article>`).join('') : '<p>در این سمستر هنوز فایلی اضافه نشده است.</p>';
   $$('[data-share-file]').forEach(b=>b.addEventListener('click',()=>shareContent('file',b.dataset.shareFile,fs.find(f=>f.id===b.dataset.shareFile)?.title)));
-  $('#photosList').innerHTML = ps.length ? ps.map(p => `<article class="note-card photo-card"><img loading="lazy" alt="${escapeHtml(p.caption || p.fileName)}" src="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(p.id)}?inline=1"><b>${escapeHtml(p.fileName)}</b><p>${escapeHtml(p.caption || '')}</p><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(p.id)}">دانلود عکس</a></article>`).join('') : '<p>هنوز خاطره‌ای ثبت نشده است.</p>';
+  $('#photosList').innerHTML = ps.length ? ps.map(p => `<article class="note-card photo-card"><button type="button" class="photo-preview-trigger" data-photo-open="${photoUrl(p.id)}" data-photo-caption="${escapeHtml(p.caption || p.fileName)}" aria-label="نمایش عکس در اندازه بزرگ"><img loading="lazy" alt="${escapeHtml(p.caption || p.fileName)}" src="${photoUrl(p.id)}"></button><p class="photo-caption">${escapeHtml(p.caption || '')}</p><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(p.id)}">دانلود عکس</a></article>`).join('') : '<p>هنوز عکسی ثبت نشده است.</p>';
 }
 let currentStudent=null;
 async function refreshStudent(){try{const d=await api('/api/account/me');currentStudent=d.student||null;}catch{currentStudent=null;}$('#accountTop').textContent=currentStudent?`👤 ${currentStudent.firstName}`:'👤 ورود / ثبت‌نام';$('#accountGreeting').textContent=currentStudent?`وارد شده: ${currentStudent.firstName} ${currentStudent.surname}`:'برای ساخت صفحه، گروه و ارسال پیام ثبت‌نام کن.';$('#accountForm').hidden=!!currentStudent;$('#studentLogout').hidden=!currentStudent;return currentStudent;}
@@ -221,3 +221,17 @@ async function navigateSharedContent(){
  const card=document.querySelector(container)?.children[idx];
  if(card){card.classList.add('shared-target');setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'center'}),150);}
 }
+
+// Shared photo lightbox for posts and the Photos tab.
+document.addEventListener('click',e=>{
+ const trigger=e.target.closest('[data-photo-open]');if(!trigger)return;
+ const viewer=document.getElementById('photoViewer');
+ const img=document.getElementById('photoViewerImage');
+ img.src=trigger.dataset.photoOpen;
+ img.alt=trigger.dataset.photoCaption||'عکس بزرگ';
+ document.getElementById('photoViewerCaption').textContent=trigger.dataset.photoCaption||'';
+ viewer.showModal();
+});
+document.getElementById('photoViewerClose').addEventListener('click',()=>document.getElementById('photoViewer').close());
+document.getElementById('photoViewer').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close();});
+document.getElementById('photoViewer').addEventListener('close',()=>{document.getElementById('photoViewerImage').removeAttribute('src');});
