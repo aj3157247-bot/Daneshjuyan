@@ -57,7 +57,7 @@ async function openContent(item) {
   let shareButton = $('#shareCurrentSpace'); if(!shareButton){shareButton=document.createElement('button');shareButton.id='shareCurrentSpace';shareButton.type='button';shareButton.className='secondary small';shareButton.textContent='🔗 اشتراک‌گذاری';$('#contentTitle').after(shareButton);}
   shareButton.onclick=()=>shareLink(new URL('/?space='+encodeURIComponent(item.id),location.origin).href,item.title);
   showPanel('chat'); dlg.showModal();
-  try { await api(`/api/spaces/${encodeURIComponent(item.id)}/content`); await loadSemesterContent(); const m = await api(`/api/spaces/${encodeURIComponent(item.id)}/messages`); messages = m.messages || []; renderMessages(); }
+  try { await api(`/api/spaces/${encodeURIComponent(item.id)}/content`); await loadSemesterContent(); const m = await api(`/api/spaces/${encodeURIComponent(item.id)}/messages`); messages = m.messages || []; renderMessages(); await navigateSharedContent(); }
   catch (err) { status('محتوا بارگذاری نشد: ' + err.message); }
 }
 async function loadSemesterContent() {
@@ -76,11 +76,12 @@ $('#noteForm').addEventListener('submit', async e => {
   catch (err) { status('نوت ذخیره نشد: ' + err.message); }
 });
 function renderNotes() {
-  $('#notesList').innerHTML = notes.length ? notes.map(n => `<article class="note-card"><div class="note-top"><h4>${escapeHtml(n.title)}</h4><button class="secondary small" type="button" data-copy-note="${escapeHtml(n.id)}">📋 کپی نوت</button></div><p>${escapeHtml(n.body)}</p><small>${escapeHtml(n.createdAt || '')}</small></article>`).join('') : '<p>هنوز نوتی اضافه نشده است. می‌توانی نوت را از موبایل کپی و اینجا بچسبانی.</p>';
+  $('#notesList').innerHTML = notes.length ? notes.map(n => `<article class="note-card"><div class="note-top"><h4>${escapeHtml(n.title)}</h4><div class="share-item-actions"><button class="secondary small" type="button" data-copy-note="${escapeHtml(n.id)}">📋 کپی نوت</button><button class="secondary small" type="button" data-share-note="${escapeHtml(n.id)}">🔗 اشتراک نوت</button></div></div><p>${escapeHtml(n.body)}</p><small>${escapeHtml(n.createdAt || '')}</small></article>`).join('') : '<p>هنوز نوتی اضافه نشده است. می‌توانی نوت را از موبایل کپی و اینجا بچسبانی.</p>';
+  $$('[data-share-note]').forEach(b=>b.addEventListener('click',()=>shareContent('note',b.dataset.shareNote,notes.find(n=>n.id===b.dataset.shareNote)?.title)));
   $$('[data-copy-note]').forEach(b => b.addEventListener('click', async () => { const n = notes.find(x => x.id === b.dataset.copyNote); try { await navigator.clipboard.writeText(n?.body || ''); alert('نوت کپی شد.'); } catch { alert('کپی خودکار ممکن نشد؛ متن را انتخاب و کپی کن.'); } }));
 }
 $('#chatForm').addEventListener('submit', async e => { e.preventDefault(); try { const body = $('#chatMessage').value.trim(); const d = await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/messages`, {method:'POST', body:JSON.stringify({body})}); messages.push(d.message); $('#chatMessage').value = ''; renderMessages(); } catch (err) { status('پیام ارسال نشد: ' + err.message); } });
-function renderMessages() { $('#chatList').innerHTML = messages.map(m => `<article class="message-card"><p>${escapeHtml(m.body)}</p><small>${escapeHtml(m.createdAt || '')}</small></article>`).join('') || '<p>هنوز پیامی فرستاده نشده است.</p>'; }
+function renderMessages() { $('#chatList').innerHTML = messages.map(m => `<article class="message-card" data-message-id="${escapeHtml(m.id)}"><div class="share-item-actions"><button class="secondary small" type="button" data-share-post="${escapeHtml(m.id)}">🔗 اشتراک ${currentItem?.kind==='page'?'پست':'پیام'}</button></div><p>${escapeHtml(m.body)}</p><small>${escapeHtml(m.createdAt || '')}</small></article>`).join('') || '<p>هنوز پیامی فرستاده نشده است.</p>'; $$('[data-share-post]').forEach(b=>b.addEventListener('click',()=>shareContent('post',b.dataset.sharePost,currentItem?.title))); }
 async function uploadAsset(form, type) {
   if (!currentItem) return; const input = form.querySelector('input[type=file]'); if (!input.files?.[0]) return;
   const fd = new FormData(); fd.append('file', input.files[0]); fd.append('type', type); fd.append('semester', String(activeSemester()));
@@ -92,7 +93,8 @@ $('#fileUploadForm').addEventListener('submit', e => { e.preventDefault(); uploa
 $('#photoUploadForm').addEventListener('submit', e => { e.preventDefault(); uploadAsset(e.currentTarget, 'photo'); });
 function renderAssets() {
   const fs = assets.files || [], ps = assets.photos || [];
-  $('#filesList').innerHTML = fs.length ? fs.map(f => `<article class="note-card"><h4>${escapeHtml(f.title || f.fileName)}</h4><p>${escapeHtml(f.fileName)} • ${Math.max(1, Math.round((f.fileSize || 0)/1024))} KB</p><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(f.id)}">دانلود فایل</a></article>`).join('') : '<p>در این سمستر هنوز فایلی اضافه نشده است.</p>';
+  $('#filesList').innerHTML = fs.length ? fs.map(f => `<article class="note-card"><h4>${escapeHtml(f.title || f.fileName)}</h4><p>${escapeHtml(f.fileName)} • ${Math.max(1, Math.round((f.fileSize || 0)/1024))} KB</p><div class="share-item-actions"><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(f.id)}">دانلود فایل</a><button class="secondary small" type="button" data-share-file="${escapeHtml(f.id)}">🔗 اشتراک فایل</button></div></article>`).join('') : '<p>در این سمستر هنوز فایلی اضافه نشده است.</p>';
+  $$('[data-share-file]').forEach(b=>b.addEventListener('click',()=>shareContent('file',b.dataset.shareFile,fs.find(f=>f.id===b.dataset.shareFile)?.title)));
   $('#photosList').innerHTML = ps.length ? ps.map(p => `<article class="note-card photo-card"><img loading="lazy" alt="${escapeHtml(p.caption || p.fileName)}" src="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(p.id)}?inline=1"><b>${escapeHtml(p.fileName)}</b><p>${escapeHtml(p.caption || '')}</p><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(p.id)}">دانلود عکس</a></article>`).join('') : '<p>هنوز خاطره‌ای ثبت نشده است.</p>';
 }
 let currentStudent=null;
@@ -159,3 +161,32 @@ function openSharedDestination(){
  if(item)startJoin(id);
 }
 window.addEventListener('load',()=>setTimeout(openSharedDestination,1000));
+
+// Item links open their parent private space first; access checks remain server-side.
+function shareContent(kind,id,title){
+ if(!currentItem||!id)return;
+ const u=new URL('/',location.origin);
+ u.searchParams.set('space',currentItem.id);
+ u.searchParams.set('item',kind);
+ u.searchParams.set('itemId',id);
+ if(kind==='note'||kind==='file')u.searchParams.set('semester',String(activeSemester()));
+ shareLink(u.href,title||'محتوای دانشجویان');
+}
+async function navigateSharedContent(){
+ const q=new URLSearchParams(location.search);
+ if(!currentItem||q.get('space')!==currentItem.id)return;
+ const kind=q.get('item'),id=q.get('itemId');if(!id||!['note','file','post'].includes(kind))return;
+ if(kind==='note'||kind==='file'){
+  const sem=Number(q.get('semester'));
+  if(Number.isInteger(sem)&&sem>=1&&sem<=8&&sem!==activeSemester()){
+   $('#activeSemester').value=String(sem);await loadSemesterContent();
+  }
+ }
+ showPanel(kind==='note'?'notes':kind==='file'?'files':'chat');
+ const list=kind==='note'?notes:kind==='file'?(assets.files||[]):messages;
+ if(!list.some(x=>String(x.id)===id))return;
+ const container=kind==='note'?'#notesList':kind==='file'?'#filesList':'#chatList';
+ const idx=list.findIndex(x=>String(x.id)===id);
+ const card=document.querySelector(container)?.children[idx];
+ if(card){card.classList.add('shared-target');setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'center'}),150);}
+}

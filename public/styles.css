@@ -78,3 +78,5 @@ a.secondary{display:inline-block;text-decoration:none}.admin-nav-link{white-spac
 #noteBody{min-height:280px;line-height:1.9;resize:vertical}
 .share-card,.hub-share{border:1px solid #c5e2d8;border-radius:14px;background:#e8f6f1;color:#075e4e;padding:12px 18px;font-weight:800;cursor:pointer;margin-top:10px;width:100%}
 #shareCurrentSpace{margin:8px 0 12px;display:inline-flex;align-items:center}
+
+.share-item-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.share-item-actions button{cursor:pointer}.shared-target{outline:3px solid #0b9479;outline-offset:4px;scroll-margin-top:90px}
