@@ -33,10 +33,17 @@ $('#createForm').addEventListener('submit', async e => {
 function render() {
   const q = $('#search').value.trim().toLocaleLowerCase(); const all = window.spaces || [];
   const shown = all.filter(x => x.kind === activeKind && [x.title,x.university,x.field,x.semester,x.shift].join(' ').toLocaleLowerCase().includes(q));
-  $('#listing').innerHTML = shown.map(x => `<article class="card ${x.kind==='page'?'page-card':'group-card'}"><div class="cover-art"><span class="cover-symbol">${x.kind==='page'?'▤':'☏'}</span><span class="badge">🔒 خصوصی</span></div><div class="card-body"><div class="card-avatar">${x.kind==='page'?'📚':'👥'}</div><h3>${escapeHtml(x.title)}</h3><p>${x.kind==='page'?'صفحه درسی · نوت‌ها و منابع':'گروه صنفی · گفتگو و هماهنگی'}</p><div class="details"><span>${escapeHtml(x.university)}</span><span>${escapeHtml(x.field)}</span><span>${escapeHtml(x.semester)}</span><span>نوبت ${escapeHtml(x.shift)}</span></div><button class="enter" data-enter="${escapeHtml(x.id)}">${x.kind==='page'?'مشاهده صفحه':'ورود به گروه'}　›</button><button class="share-card" type="button" data-share-space="${escapeHtml(x.id)}">🔗 اشتراک‌گذاری</button></div></article>`).join('');
+  $('#listing').innerHTML = shown.map(x => `<article class="card ${x.kind==='page'?'page-card':'group-card'}"><div class="cover-art"><span class="cover-symbol">${x.kind==='page'?'▤':'☏'}</span><span class="badge">🔒 خصوصی</span></div><div class="card-body"><div class="card-avatar">${x.kind==='page'?'📚':'👥'}</div><h3>${escapeHtml(x.title)}</h3><p>${x.kind==='page'?'صفحه درسی · نوت‌ها و منابع':'گروه صنفی · گفتگو و هماهنگی'}</p><div class="details"><span>${escapeHtml(x.university)}</span><span>${escapeHtml(x.field)}</span><span>${escapeHtml(x.semester)}</span><span>نوبت ${escapeHtml(x.shift)}</span></div><button class="enter" data-enter="${escapeHtml(x.id)}">${x.kind==='page'?'مشاهده صفحه':'ورود به گروه'}　›</button><button class="share-card" type="button" data-share-space="${escapeHtml(x.id)}">🔗 اشتراک‌گذاری</button>${x.canDelete?`<button class="secondary small" type="button" data-delete-space="${escapeHtml(x.id)}">🗑 حذف ${x.kind==='page'?'صفحه':'گروه'}</button>`:''}</div></article>`).join('');
   $('#empty').hidden = shown.length > 0; $('#listing').hidden = shown.length === 0; $('#emptyTitle').textContent = activeKind === 'page' ? 'هنوز صفحه‌ای ساخته نشده' : 'هنوز گروهی ساخته نشده';
   $$('[data-enter]').forEach(b => b.addEventListener('click', () => startJoin(b.dataset.enter)));
   $$('[data-share-space]').forEach(b => b.addEventListener('click', () => shareLink(new URL('/share?space='+encodeURIComponent(b.dataset.shareSpace),location.origin).href, 'صفحه یا گروه دانشجویان')));
+  $$('[data-delete-space]').forEach(b=>b.addEventListener('click',()=>deleteOwnedSpace(b.dataset.deleteSpace)));
+}
+async function deleteOwnedSpace(id){
+ const item=(window.spaces||[]).find(x=>x.id===id);if(!item||!item.canDelete)return;
+ const type=item.kind==='page'?'صفحه':'گروه';
+ if(!confirm(`اخطار: با حذف «${item.title}»، ${type} و تمام پست‌ها، عکس‌ها، فایل‌ها و اطلاعات مرتبط با آن برای همیشه حذف می‌شوند و قابل بازگردانی نیستند. آیا مطمئن هستی؟`))return;
+ try{await api('/api/spaces?id='+encodeURIComponent(id),{method:'DELETE'});if(currentItem?.id===id){$('#contentDialog').close();currentItem=null;}await loadSpaces();status(`${type} برای همیشه حذف شد.`);}catch(err){alert('حذف انجام نشد: '+err.message);}
 }
 function startJoin(id, created = false) {
   joiningId = id; const item = (window.spaces || []).find(x => x.id === id); if (!item) return;
@@ -56,6 +63,8 @@ async function openContent(item) {
   $('#contentMeta').hidden = !isPage;
   let shareButton = $('#shareCurrentSpace'); if(!shareButton){shareButton=document.createElement('button');shareButton.id='shareCurrentSpace';shareButton.type='button';shareButton.className='secondary small';shareButton.textContent='🔗 اشتراک‌گذاری';$('#contentTitle').after(shareButton);}
   shareButton.onclick=()=>shareLink(new URL('/share?space='+encodeURIComponent(item.id),location.origin).href,item.title);
+  let deleteButton=$('#deleteCurrentSpace');if(!deleteButton){deleteButton=document.createElement('button');deleteButton.id='deleteCurrentSpace';deleteButton.type='button';deleteButton.className='secondary small';deleteButton.textContent='🗑 حذف صفحه / گروه';shareButton.after(deleteButton);}
+  const owned=(window.spaces||[]).find(x=>x.id===item.id);deleteButton.hidden=!owned?.canDelete;deleteButton.onclick=()=>deleteOwnedSpace(item.id);
   showPanel('chat'); dlg.showModal(); renderAds('space', dlg);
   try { await api(`/api/spaces/${encodeURIComponent(item.id)}/content`); await loadSemesterContent(); const m = await api(`/api/spaces/${encodeURIComponent(item.id)}/messages`); messages = m.messages || []; renderMessages(); await navigateSharedContent(); }
   catch (err) { status('محتوا بارگذاری نشد: ' + err.message); }
