@@ -80,8 +80,34 @@ function renderNotes() {
   $$('[data-share-note]').forEach(b=>b.addEventListener('click',()=>shareContent('note',b.dataset.shareNote,notes.find(n=>n.id===b.dataset.shareNote)?.title)));
   $$('[data-copy-note]').forEach(b => b.addEventListener('click', async () => { const n = notes.find(x => x.id === b.dataset.copyNote); try { await navigator.clipboard.writeText(n?.body || ''); alert('نوت کپی شد.'); } catch { alert('کپی خودکار ممکن نشد؛ متن را انتخاب و کپی کن.'); } }));
 }
-$('#chatForm').addEventListener('submit', async e => { e.preventDefault(); try { const body = $('#chatMessage').value.trim(); const d = await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/messages`, {method:'POST', body:JSON.stringify({body})}); messages.push(d.message); $('#chatMessage').value = ''; renderMessages(); } catch (err) { status('پیام ارسال نشد: ' + err.message); } });
-function renderMessages() { $('#chatList').innerHTML = messages.map(m => `<article class="message-card" data-message-id="${escapeHtml(m.id)}"><div class="share-item-actions"><button class="secondary small" type="button" data-share-post="${escapeHtml(m.id)}">🔗 اشتراک ${currentItem?.kind==='page'?'پست':'پیام'}</button></div><p>${escapeHtml(m.body)}</p><small>${escapeHtml(m.createdAt || '')}</small></article>`).join('') || '<p>هنوز پیامی فرستاده نشده است.</p>'; $$('[data-share-post]').forEach(b=>b.addEventListener('click',()=>shareContent('post',b.dataset.sharePost,currentItem?.title))); }
+// Post photos use the existing private photo storage, so they also appear in the Photos tab.
+const postPhotoPattern = /^\[\[DJ_PHOTO:([0-9a-f-]{36})\]\](?:\n|$)/i;
+function postParts(body) { const value=String(body||''); const match=value.match(postPhotoPattern); return {photoId:match?.[1]||null,text:match?value.slice(match[0].length):value}; }
+function photoUrl(id) { return `/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(id)}?inline=1`; }
+$('#chatForm').addEventListener('submit', async e => {
+  e.preventDefault(); const button=e.currentTarget.querySelector('button[type=submit]');
+  const input=$('#postPhoto'), file=input?.files?.[0], text=$('#chatMessage').value.trim();
+  if (!text && !file) {status('متن یا عکس انتخاب کن.');return;}
+  button.disabled=true;
+  try {
+    let photoId=null;
+    if(file){
+      const fd=new FormData();fd.append('file',file);fd.append('type','photo');fd.append('semester',String(activeSemester()));fd.append('caption',text.slice(0,250));
+      const res=await fetch(`/api/spaces/${encodeURIComponent(currentItem.id)}/assets`,{method:'POST',body:fd,credentials:'same-origin'});
+      const data=await res.json();if(!res.ok)throw new Error(data.error||'عکس بارگذاری نشد.');photoId=data.id;
+    }
+    const body=photoId?`[[DJ_PHOTO:${photoId}]]\n${text}`:text;
+    const d=await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/messages`,{method:'POST',body:JSON.stringify({body})});
+    messages.push(d.message);$('#chatForm').reset();renderMessages();
+    if(photoId){await loadSemesterContent();showPanel('chat');}
+    status('');
+  }catch(err){status('انتشار پست انجام نشد: '+err.message);}
+  finally{button.disabled=false;}
+});
+function renderMessages() {
+ $('#chatList').innerHTML=messages.map(m=>{const post=postParts(m.body);return `<article class="message-card" data-message-id="${escapeHtml(m.id)}"><div class="share-item-actions"><button class="secondary small" type="button" data-share-post="${escapeHtml(m.id)}">🔗 اشتراک ${currentItem?.kind==='page'?'پست':'پیام'}</button></div>${post.photoId?`<a href="${photoUrl(post.photoId)}" target="_blank" rel="noopener"><img class="post-photo" loading="lazy" src="${photoUrl(post.photoId)}" alt="عکس پست"></a>`:''}${post.text?`<p>${escapeHtml(post.text)}</p>`:''}<small>${escapeHtml(m.createdAt||'')}</small></article>`;}).join('')||'<p>هنوز پیامی فرستاده نشده است.</p>';
+ $$('[data-share-post]').forEach(b=>b.addEventListener('click',()=>shareContent('post',b.dataset.sharePost,currentItem?.title)));
+}
 async function uploadAsset(form, type) {
   if (!currentItem) return; const input = form.querySelector('input[type=file]'); if (!input.files?.[0]) return;
   const fd = new FormData(); fd.append('file', input.files[0]); fd.append('type', type); fd.append('semester', String(activeSemester()));

@@ -80,3 +80,5 @@ a.secondary{display:inline-block;text-decoration:none}.admin-nav-link{white-spac
 #shareCurrentSpace{margin:8px 0 12px;display:inline-flex;align-items:center}
 
 .share-item-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.share-item-actions button{cursor:pointer}.shared-target{outline:3px solid #0b9479;outline-offset:4px;scroll-margin-top:90px}
+
+.post-photo{display:block;width:100%;max-height:520px;object-fit:contain;border-radius:16px;background:#edf5f2;margin:12px 0;cursor:zoom-in}.message-card{overflow-wrap:anywhere}#postPhoto{width:100%;max-width:100%;margin:10px 0 14px}#chatForm small{display:block;color:#64756e;margin-bottom:12px}
