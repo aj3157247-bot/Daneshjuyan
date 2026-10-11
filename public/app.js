@@ -36,7 +36,7 @@ function render() {
   $('#listing').innerHTML = shown.map(x => `<article class="card ${x.kind==='page'?'page-card':'group-card'}"><div class="cover-art"><span class="cover-symbol">${x.kind==='page'?'▤':'☏'}</span><span class="badge">🔒 خصوصی</span></div><div class="card-body"><div class="card-avatar">${x.kind==='page'?'📚':'👥'}</div><h3>${escapeHtml(x.title)}</h3><p>${x.kind==='page'?'صفحه درسی · نوت‌ها و منابع':'گروه صنفی · گفتگو و هماهنگی'}</p><div class="details"><span>${escapeHtml(x.university)}</span><span>${escapeHtml(x.field)}</span><span>${escapeHtml(x.semester)}</span><span>نوبت ${escapeHtml(x.shift)}</span></div><button class="enter" data-enter="${escapeHtml(x.id)}">${x.kind==='page'?'مشاهده صفحه':'ورود به گروه'}　›</button><button class="share-card" type="button" data-share-space="${escapeHtml(x.id)}">🔗 اشتراک‌گذاری</button></div></article>`).join('');
   $('#empty').hidden = shown.length > 0; $('#listing').hidden = shown.length === 0; $('#emptyTitle').textContent = activeKind === 'page' ? 'هنوز صفحه‌ای ساخته نشده' : 'هنوز گروهی ساخته نشده';
   $$('[data-enter]').forEach(b => b.addEventListener('click', () => startJoin(b.dataset.enter)));
-  $$('[data-share-space]').forEach(b => b.addEventListener('click', () => shareLink(new URL('/?space='+encodeURIComponent(b.dataset.shareSpace),location.origin).href, 'صفحه یا گروه دانشجویان')));
+  $$('[data-share-space]').forEach(b => b.addEventListener('click', () => shareLink(new URL('/share?space='+encodeURIComponent(b.dataset.shareSpace),location.origin).href, 'صفحه یا گروه دانشجویان')));
 }
 function startJoin(id, created = false) {
   joiningId = id; const item = (window.spaces || []).find(x => x.id === id); if (!item) return;
@@ -55,7 +55,7 @@ async function openContent(item) {
   $('#activeSemester').closest('.semester-picker').hidden = !isPage;
   $('#contentMeta').hidden = !isPage;
   let shareButton = $('#shareCurrentSpace'); if(!shareButton){shareButton=document.createElement('button');shareButton.id='shareCurrentSpace';shareButton.type='button';shareButton.className='secondary small';shareButton.textContent='🔗 اشتراک‌گذاری';$('#contentTitle').after(shareButton);}
-  shareButton.onclick=()=>shareLink(new URL('/?space='+encodeURIComponent(item.id),location.origin).href,item.title);
+  shareButton.onclick=()=>shareLink(new URL('/share?space='+encodeURIComponent(item.id),location.origin).href,item.title);
   showPanel('chat'); dlg.showModal();
   try { await api(`/api/spaces/${encodeURIComponent(item.id)}/content`); await loadSemesterContent(); const m = await api(`/api/spaces/${encodeURIComponent(item.id)}/messages`); messages = m.messages || []; renderMessages(); await navigateSharedContent(); }
   catch (err) { status('محتوا بارگذاری نشد: ' + err.message); }
@@ -113,7 +113,7 @@ function communityTime(value) { const date = new Date(value); return Number.isNa
 function communityDay(value) { const date = new Date(value); return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('fa-AF', {year:'numeric',month:'long',day:'numeric'}); }
 function communityAvatar(name) { return (name || 'د').trim().charAt(0); }
 function updateCommunityAccess() { const signedIn = !!currentStudent; $('#communityForm').hidden = !signedIn; $('#communityJoin').hidden = signedIn; }
-$('#shareCommunity').addEventListener('click', () => shareLink(new URL('/?community=1',location.origin).href,'گروه عمومی دانشجویان'));
+$('#shareCommunity').addEventListener('click', () => shareLink(new URL('/share?community=1',location.origin).href,'گروه عمومی دانشجویان'));
 $('#communityTop').addEventListener('click', async () => { communityDialog.showModal(); await refreshStudent(); updateCommunityAccess(); await loadCommunity(true); });
 $('#communityJoin').addEventListener('click', () => { communityDialog.close(); openAccount(); });
 $('#communityRefresh').addEventListener('click', () => loadCommunity(true));
@@ -165,7 +165,7 @@ window.addEventListener('load',()=>setTimeout(openSharedDestination,1000));
 // Item links open their parent private space first; access checks remain server-side.
 function shareContent(kind,id,title){
  if(!currentItem||!id)return;
- const u=new URL('/',location.origin);
+ const u=new URL('/share',location.origin);
  u.searchParams.set('space',currentItem.id);
  u.searchParams.set('item',kind);
  u.searchParams.set('itemId',id);
