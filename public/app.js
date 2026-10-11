@@ -35,8 +35,18 @@ function render() {
   const shown = all.filter(x => x.kind === activeKind && [x.title,x.university,x.field,x.semester,x.shift].join(' ').toLocaleLowerCase().includes(q));
   $('#listing').innerHTML = shown.map(x => `<article class="card ${x.kind==='page'?'page-card':'group-card'}"><div class="cover-art"><span class="cover-symbol">${x.kind==='page'?'▤':'☏'}</span><span class="badge">🔒 خصوصی</span></div><div class="card-body"><div class="card-avatar">${x.kind==='page'?'📚':'👥'}</div><h3>${escapeHtml(x.title)}</h3><p>${x.kind==='page'?'صفحه درسی · نوت‌ها و منابع':'گروه صنفی · گفتگو و هماهنگی'}</p><div class="details"><span>${escapeHtml(x.university)}</span><span>${escapeHtml(x.field)}</span><span>${escapeHtml(x.semester)}</span><span>نوبت ${escapeHtml(x.shift)}</span></div><button class="enter" data-enter="${escapeHtml(x.id)}">${x.kind==='page'?'مشاهده صفحه':'ورود به گروه'}　›</button></div></article>`).join('');
   $('#empty').hidden = shown.length > 0; $('#listing').hidden = shown.length === 0; $('#emptyTitle').textContent = activeKind === 'page' ? 'هنوز صفحه‌ای ساخته نشده' : 'هنوز گروهی ساخته نشده';
-  $$('[data-enter]').forEach(b => b.addEventListener('click', () => startJoin(b.dataset.enter)));
+  // Card navigation is handled by a single delegated listener below.
+
 }
+// Delegated navigation survives card re-rendering and taps on nested elements.
+document.addEventListener('click', e => {
+  const button = e.target.closest('[data-enter]');
+  if (!button) return;
+  e.preventDefault();
+  e.stopPropagation();
+  try { startJoin(button.getAttribute('data-enter')); }
+  catch (error) { console.error('Open page/group:', error); alert('بازکردن صفحه یا گروه ممکن نشد. صفحه را تازه‌سازی کن.'); }
+});
 function startJoin(id, created = false) {
   joiningId = id; const item = (window.spaces || []).find(x => x.id === id); if (!item) return;
   $('#joinTitle').textContent = item.kind === 'page' ? 'ورود به صفحه' : 'ورود به گروه'; $('#joinDescription').textContent = `${item.title} • ${item.university} • ${item.field} • ${item.semester}`; $('#joinPassword').value = ''; $('#joinError').hidden = true; $('#joinDialog').showModal();

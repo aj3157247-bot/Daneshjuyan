@@ -69,3 +69,9 @@ a.secondary{display:inline-block;text-decoration:none}.admin-nav-link{white-spac
 .chat-composer{flex-shrink:0;background:#fff;border-top:1px solid #e0e9e5;padding:12px;display:flex;align-items:flex-end;gap:10px}.chat-composer textarea{min-height:46px;max-height:120px;resize:none!important;flex:1;background:#f3f7f5!important;border-radius:22px!important;padding:11px 15px!important;font-size:14px}.chat-send{background:#116b5b;color:#fff;border:0;border-radius:50%;width:47px;height:47px;flex-shrink:0;font-size:23px;transform:scaleX(-1)}.chat-send:disabled{opacity:.5}.chat-join{flex-shrink:0;border:0;background:#116b5b;color:#fff;font-weight:800;padding:17px;width:100%}
 .community-dialog #communityStatus{margin:5px 12px}
 @media(max-width:650px){.community-dialog{position:fixed;inset:0;margin:0;width:100vw;height:100dvh;max-height:100dvh;border-radius:0}.chat-header{padding:10px 12px}.chat-header-text h2{font-size:14px}.chat-messages{padding:14px 10px}.chat-message{max-width:96%}}
+
+/* Navigation interaction repair: keep card actions tappable above decoration. */
+.card .card-body{position:relative;z-index:2}
+.card .enter{position:relative;z-index:3;pointer-events:auto;touch-action:manipulation;cursor:pointer}
+.card .cover-art,.card .cover-symbol,.card .card-avatar{pointer-events:none}
+#joinDialog[open],#contentDialog[open]{pointer-events:auto}
