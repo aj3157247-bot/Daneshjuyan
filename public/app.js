@@ -101,9 +101,42 @@ $('#studentLogin').addEventListener('click',()=>accountAction('login'));
 async function accountAction(action){const error=$('#accountError');error.hidden=true;try{const d=await api('/api/account/'+action,{method:'POST',body:JSON.stringify({firstName:$('#studentFirst').value.trim(),surname:$('#studentSurname').value.trim(),password:$('#studentPassword').value})});$('#studentPassword').value='';await refreshStudent();$('#accountDialog').close();status(`خوش آمدی ${d.student.firstName} ${d.student.surname}`);}catch(e){error.textContent=e.message;error.hidden=false;}}
 $('#studentLogout').addEventListener('click',async()=>{await api('/api/account/logout',{method:'POST'});await refreshStudent();$('#accountDialog').close();});
 refreshStudent();
-$('#communityTop').addEventListener('click', async () => { $('#communityDialog').showModal(); await refreshStudent(); await loadCommunity(); });
-async function loadCommunity() { try { const d = await api('/api/community'); $('#communityList').innerHTML = (d.messages || []).map(m => `<article class="message-card"><b>${escapeHtml(m.displayName)}</b><p>${escapeHtml(m.body)}</p><small>${escapeHtml(m.createdAt || '')}</small></article>`).join('') || '<p>هنوز پیامی ثبت نشده است.</p>'; } catch (e) { $('#communityStatus').textContent = e.message; $('#communityStatus').hidden = false; } }
-$('#communityForm').addEventListener('submit', async e => { e.preventDefault(); if(!await refreshStudent()){ $('#communityDialog').close();openAccount();return;} try { await api('/api/community', {method:'POST', body:JSON.stringify({body:$('#communityText').value.trim()})}); $('#communityText').value = ''; await loadCommunity(); } catch (err) { $('#communityStatus').textContent = err.message; $('#communityStatus').hidden = false; } });
+const communityDialog = $('#communityDialog');
+const communityList = $('#communityList');
+let communityLastSignature = '';
+function communityTime(value) { const date = new Date(value); return Number.isNaN(date.getTime()) ? '' : date.toLocaleTimeString('fa-AF', {hour:'2-digit', minute:'2-digit'}); }
+function communityDay(value) { const date = new Date(value); return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('fa-AF', {year:'numeric',month:'long',day:'numeric'}); }
+function communityAvatar(name) { return (name || 'د').trim().charAt(0); }
+function updateCommunityAccess() { const signedIn = !!currentStudent; $('#communityForm').hidden = !signedIn; $('#communityJoin').hidden = signedIn; }
+$('#communityTop').addEventListener('click', async () => { communityDialog.showModal(); await refreshStudent(); updateCommunityAccess(); await loadCommunity(true); });
+$('#communityJoin').addEventListener('click', () => { communityDialog.close(); openAccount(); });
+$('#communityRefresh').addEventListener('click', () => loadCommunity(true));
+async function loadCommunity(force=false) {
+ try {
+  const d = await api('/api/community'); const items = d.messages || [];
+  const signature = JSON.stringify(items);
+  if (signature === communityLastSignature && !force) return;
+  const atBottom = communityList.scrollHeight - communityList.scrollTop - communityList.clientHeight < 130;
+  communityLastSignature = signature;
+  let previousDay = '';
+  communityList.innerHTML = items.length ? items.map(m => {
+   const day = communityDay(m.createdAt);
+   const separator = day && day !== previousDay ? `<div class="chat-date"><span>${escapeHtml(day)}</span></div>` : '';
+   previousDay = day;
+   const name = m.displayName || 'دانشجو';
+   return `${separator}<article class="chat-message"><div class="chat-avatar" aria-hidden="true">${escapeHtml(communityAvatar(name))}</div><div class="chat-bubble"><div class="chat-author">${escapeHtml(name)}</div><p>${escapeHtml(m.body)}</p><time>${escapeHtml(communityTime(m.createdAt))}</time></div></article>`;
+  }).join('') : '<div class="chat-empty"><div>💬</div><strong>گفتگو را آغاز کن!</strong><p>هنوز پیامی ارسال نشده است. اولین نفری باش که سلام می‌کند.</p></div>';
+  $('#communityStatus').hidden = true;
+  if (atBottom || force) communityList.scrollTop = communityList.scrollHeight;
+ } catch (e) { $('#communityStatus').textContent = e.message; $('#communityStatus').hidden = false; }
+}
+$('#communityForm').addEventListener('submit', async e => {
+ e.preventDefault(); if(!await refreshStudent()){ communityDialog.close();openAccount();return; }
+ const send = $('#communityForm button[type=submit]'); send.disabled = true;
+ try { await api('/api/community', {method:'POST', body:JSON.stringify({body:$('#communityText').value.trim()})}); $('#communityText').value = ''; await loadCommunity(true); }
+ catch (err) { $('#communityStatus').textContent = err.message; $('#communityStatus').hidden = false; }
+ finally { send.disabled = false; }
+});
 setInterval(async () => { if ($('#communityDialog').open) await loadCommunity(); if ($('#contentDialog').open && currentItem) { try { const d = await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/messages`); messages = d.messages || []; renderMessages(); } catch {} } }, 5000);
 function trackPage() { let visitor = localStorage.getItem('dj_visitor_id'); if (!visitor) { visitor = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`).replace(/-/g,''); localStorage.setItem('dj_visitor_id', visitor); } fetch('/api/track', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({visitorId:visitor, path:location.pathname})}).catch(() => {}); }
 trackPage();
