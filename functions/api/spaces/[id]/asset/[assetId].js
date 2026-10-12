@@ -1,8 +1,10 @@
 import {validSession,requireDb,json} from '../../../_utils.js';
+import {getStudent} from '../../../_student.js';
 export async function onRequestGet({request,env,params}){
  try{
   requireDb(env);
   if(!env.SESSION_SECRET||!await validSession(request,params.id,env.SESSION_SECRET))return json({error:'دسترسی نیاز به رمز صفحه دارد.'},401);
+  if(!await getStudent(request,env))return json({error:'برای دانلود یا مشاهده فایل‌ها و عکس‌ها ابتدا ثبت‌نام کن و وارد حساب دانشجویی شو.'},401);
   let row=await env.DB.prepare('SELECT id,file_name AS fileName,mime_type AS mimeType FROM space_files WHERE id=? AND space_id=?').bind(params.assetId,params.id).first();
   if(!row)row=await env.DB.prepare('SELECT id,file_name AS fileName,mime_type AS mimeType FROM space_photos WHERE id=? AND space_id=?').bind(params.assetId,params.id).first();
   if(!row)return json({error:'فایل پیدا نشد.'},404);
