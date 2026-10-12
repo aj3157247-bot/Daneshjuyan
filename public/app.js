@@ -85,16 +85,9 @@ $('#noteForm').addEventListener('submit', async e => {
   catch (err) { status('نوت ذخیره نشد: ' + err.message); }
 });
 function renderNotes() {
-  $('#notesList').innerHTML = notes.length ? notes.map(n => `<article class="note-card"><div class="note-top"><h4>${escapeHtml(n.title)}</h4><div class="share-item-actions"><button class="secondary small" type="button" data-copy-note="${escapeHtml(n.id)}">📋 کپی نوت</button><button class="secondary small" type="button" data-share-note="${escapeHtml(n.id)}">🔗 اشتراک نوت</button>${(window.spaces||[]).find(x=>x.id===currentItem?.id)?.canDelete?`<button class="secondary small" type="button" data-delete-note="${escapeHtml(n.id)}">🗑 حذف نوت</button>`:""}</div></div><p>${escapeHtml(n.body)}</p><small>${escapeHtml(n.createdAt || '')}</small></article>`).join('') : '<p>هنوز نوتی اضافه نشده است. می‌توانی نوت را از موبایل کپی و اینجا بچسبانی.</p>';
+  $('#notesList').innerHTML = notes.length ? notes.map(n => `<article class="note-card"><div class="note-top"><h4>${escapeHtml(n.title)}</h4><div class="share-item-actions"><button class="secondary small" type="button" data-copy-note="${escapeHtml(n.id)}">📋 کپی نوت</button><button class="secondary small" type="button" data-share-note="${escapeHtml(n.id)}">🔗 اشتراک نوت</button></div></div><p>${escapeHtml(n.body)}</p><small>${escapeHtml(n.createdAt || '')}</small></article>`).join('') : '<p>هنوز نوتی اضافه نشده است. می‌توانی نوت را از موبایل کپی و اینجا بچسبانی.</p>';
   $$('[data-share-note]').forEach(b=>b.addEventListener('click',()=>shareContent('note',b.dataset.shareNote,notes.find(n=>n.id===b.dataset.shareNote)?.title)));
-  $$('[data-delete-note]').forEach(b => b.addEventListener('click', async () => {
-    const id=b.dataset.deleteNote; const note=notes.find(n=>n.id===id);
-    if(!note || !confirm(`اخطار: نوت «${note.title}» برای همیشه حذف می‌شود و قابل بازگردانی نیست. آیا مطمئن هستی؟`)) return;
-    b.disabled=true;
-    try { await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/semester-notes?noteId=${encodeURIComponent(id)}`,{method:'DELETE'}); notes=notes.filter(n=>n.id!==id);renderNotes(); }
-    catch(err){b.disabled=false;alert('حذف نوت انجام نشد: '+err.message);}
-  }));
-  $$('[data-copy-note]').forEach(b => b.addEventListener('click', async () => { const n = notes.find(x => x.id === b.dataset.copyNote); try { await navigator.clipboard.writeText(n?.body || ''); alert('نوت کپی شد.'); } catch { alert('کپی خودکار ممکن نشد؛ متن را انتخاب و کپی کن.'); } }));
+  $$('[data-copy-note]').forEach(b => b.addEventListener('click', async () => { if(!await requireStudentForDownload())return; const n = notes.find(x => x.id === b.dataset.copyNote); try { await navigator.clipboard.writeText(n?.body || ''); alert('نوت کپی شد.'); } catch { alert('کپی خودکار ممکن نشد؛ متن را انتخاب و کپی کن.'); } }));
 }
 // Post photos use the existing private photo storage, so they also appear in the Photos tab.
 const postPhotoPattern = /^\[\[DJ_PHOTO:([0-9a-f-]{36})\]\](?:\n|$)/i;
@@ -122,7 +115,7 @@ $('#chatForm').addEventListener('submit', async e => {
 });
 function renderMessages() {
   const canDeletePosts=!!(window.spaces||[]).find(s=>s.id===currentItem?.id)?.canDelete;
- $('#chatList').innerHTML=messages.map(m=>{const post=postParts(m.body);return `<article class="message-card" data-message-id="${escapeHtml(m.id)}"><div class="share-item-actions"><button class="secondary small" type="button" data-share-post="${escapeHtml(m.id)}">🔗 اشتراک ${currentItem?.kind==='page'?'پست':'پیام'}</button>${canDeletePosts?`<button class="secondary small" type="button" data-delete-post="${escapeHtml(m.id)}">🗑 حذف ${currentItem?.kind==='page'?'پست':'پیام'}</button>`:''}</div>${post.photoId?`<button type="button" class="photo-preview-trigger" data-photo-open="${photoUrl(post.photoId)}" aria-label="بزرگ‌نمایی عکس پست"><img class="post-photo" loading="lazy" src="${photoUrl(post.photoId)}" alt="عکس پست"></button>`:''}${post.text?`<p>${escapeHtml(post.text)}</p>`:''}<small>${escapeHtml(m.createdAt||'')}</small></article>`;}).join('')||'<p>هنوز پیامی فرستاده نشده است.</p>';
+ $('#chatList').innerHTML=messages.map(m=>{const post=postParts(m.body);return `<article class="message-card" data-message-id="${escapeHtml(m.id)}"><div class="share-item-actions"><button class="secondary small" type="button" data-share-post="${escapeHtml(m.id)}">🔗 اشتراک ${currentItem?.kind==='page'?'پست':'پیام'}</button>${canDeletePosts?`<button class="secondary small" type="button" data-delete-post="${escapeHtml(m.id)}">🗑 حذف ${currentItem?.kind==='page'?'پست':'پیام'}</button>`:''}</div>${post.photoId?`<button type="button" class="photo-preview-trigger" data-photo-open="${photoUrl(post.photoId)}" aria-label="بزرگ‌نمایی عکس پست"><img class="post-photo" loading="lazy" src="${currentStudent?photoUrl(post.photoId):'/logo.svg'}" alt="عکس پست"></button>`:''}${post.text?`<p>${escapeHtml(post.text)}</p>`:''}<small>${escapeHtml(m.createdAt||'')}</small></article>`;}).join('')||'<p>هنوز پیامی فرستاده نشده است.</p>';
   $$('[data-delete-post]').forEach(b=>b.addEventListener('click',async()=>{
     if(!currentItem)return;
     if(!confirm('اخطار: این پست یا پیام برای همیشه حذف می‌شود و قابل بازگردانی نیست. آیا مطمئن هستی؟'))return;
@@ -145,7 +138,7 @@ function renderAssets() {
   $('#filesList').innerHTML = fs.length ? fs.map(f => `<article class="note-card"><h4>${escapeHtml(f.title || f.fileName)}</h4><p>${escapeHtml(f.fileName)} • ${Math.max(1, Math.round((f.fileSize || 0)/1024))} KB</p><div class="share-item-actions"><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(f.id)}">دانلود فایل</a><button class="secondary small" type="button" data-share-file="${escapeHtml(f.id)}">🔗 اشتراک فایل</button>${canDelete?`<button class="secondary small" type="button" data-delete-asset="${escapeHtml(f.id)}" data-delete-type="file">🗑 حذف فایل</button>`:''}</div></article>`).join('') : '<p>در این سمستر هنوز فایلی اضافه نشده است.</p>';
   $$('[data-share-file]').forEach(b=>b.addEventListener('click',()=>shareContent('file',b.dataset.shareFile,fs.find(f=>f.id===b.dataset.shareFile)?.title)));
 
-  $('#photosList').innerHTML = ps.length ? ps.map(p => `<article class="note-card photo-card"><button type="button" class="photo-preview-trigger" data-photo-open="${photoUrl(p.id)}" data-photo-caption="${escapeHtml(p.caption || p.fileName)}" aria-label="نمایش عکس در اندازه بزرگ"><img loading="lazy" alt="${escapeHtml(p.caption || p.fileName)}" src="${photoUrl(p.id)}"></button><p class="photo-caption">${escapeHtml(p.caption || '')}</p><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(p.id)}">دانلود عکس</a>${canDelete?`<button class="secondary small" type="button" data-delete-asset="${escapeHtml(p.id)}" data-delete-type="photo">🗑 حذف عکس</button>`:''}</article>`).join('') : '<p>هنوز عکسی ثبت نشده است.</p>';
+  $('#photosList').innerHTML = ps.length ? ps.map(p => `<article class="note-card photo-card"><button type="button" class="photo-preview-trigger" data-photo-open="${photoUrl(p.id)}" data-photo-caption="${escapeHtml(p.caption || p.fileName)}" aria-label="نمایش عکس در اندازه بزرگ"><img loading="lazy" alt="${escapeHtml(p.caption || p.fileName)}" src="${currentStudent?photoUrl(p.id):'/logo.svg'}"></button><p class="photo-caption">${escapeHtml(p.caption || '')}</p><a class="download-link" href="/api/spaces/${encodeURIComponent(currentItem.id)}/asset/${encodeURIComponent(p.id)}">دانلود عکس</a>${canDelete?`<button class="secondary small" type="button" data-delete-asset="${escapeHtml(p.id)}" data-delete-type="photo">🗑 حذف عکس</button>`:''}</article>`).join('') : '<p>هنوز عکسی ثبت نشده است.</p>';
   $$('[data-delete-asset]').forEach(b=>b.addEventListener('click',async()=>{
     const type=b.dataset.deleteType;
     if(!confirm(`آیا از حذف دائمی ${type==='photo'?'این عکس':'این فایل'} مطمئن هستی؟`))return;
@@ -160,7 +153,7 @@ function openAccount(){$('#accountError').hidden=true;$('#accountDialog').showMo
 $('#accountTop').addEventListener('click',async()=>{await refreshStudent();openAccount();});
 $('#accountForm').addEventListener('submit',async e=>{e.preventDefault();await accountAction('register');});
 $('#studentLogin').addEventListener('click',()=>accountAction('login'));
-async function accountAction(action){const error=$('#accountError');error.hidden=true;try{const d=await api('/api/account/'+action,{method:'POST',body:JSON.stringify({firstName:$('#studentFirst').value.trim(),surname:$('#studentSurname').value.trim(),password:$('#studentPassword').value})});$('#studentPassword').value='';await refreshStudent();$('#accountDialog').close();status(`خوش آمدی ${d.student.firstName} ${d.student.surname}`);}catch(e){error.textContent=e.message;error.hidden=false;}}
+async function accountAction(action){const error=$('#accountError');error.hidden=true;try{const d=await api('/api/account/'+action,{method:'POST',body:JSON.stringify({firstName:$('#studentFirst').value.trim(),surname:$('#studentSurname').value.trim(),password:$('#studentPassword').value})});$('#studentPassword').value='';await refreshStudent();if(currentItem){renderAssets();renderMessages();}$('#accountDialog').close();status(`خوش آمدی ${d.student.firstName} ${d.student.surname}`);}catch(e){error.textContent=e.message;error.hidden=false;}}
 $('#studentLogout').addEventListener('click',async()=>{await api('/api/account/logout',{method:'POST'});await refreshStudent();$('#accountDialog').close();});
 refreshStudent();
 const communityDialog = $('#communityDialog');
@@ -266,3 +259,24 @@ document.addEventListener('click',e=>{
 document.getElementById('photoViewerClose').addEventListener('click',()=>document.getElementById('photoViewer').close());
 document.getElementById('photoViewer').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close();});
 document.getElementById('photoViewer').addEventListener('close',()=>{document.getElementById('photoViewerImage').removeAttribute('src');});
+
+// Require a verified student session before delivering any downloadable material.
+async function requireStudentForDownload(){
+  if(await refreshStudent())return true;
+  alert('🔒 برای دانلود PDF، فایل، عکس یا کپی نوت ابتدا باید در سایت دانشجویان ثبت‌نام کنی و وارد حساب دانشجویی شوی. ثبت‌نام رایگان است.');
+  openAccount();
+  return false;
+}
+document.addEventListener('click',async event=>{
+  const link=event.target.closest('a.download-link');
+  if(link){
+    event.preventDefault();
+    if(await requireStudentForDownload())window.location.assign(link.href);
+    return;
+  }
+  const photo=event.target.closest('[data-photo-open]');
+  if(photo&&!currentStudent){
+    event.preventDefault();event.stopImmediatePropagation();
+    await requireStudentForDownload();
+  }
+},true);
