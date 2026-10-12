@@ -11,8 +11,16 @@
 <body>
 <header class="topbar">
  <a class="brand" href="/"><span class="logo">د</span><span>دانشجویان<small>صفحه‌ها و گروه‌های دانشجویی</small></span></a>
- <div class="top-actions"><button class="secondary" id="accountTop">👤 ورود / ثبت‌نام</button><button class="primary" id="createTop">＋ ساخت</button></div>
+ <div class="top-actions"><button class="secondary" id="siteMenuButton" type="button" aria-expanded="false" aria-controls="siteMenu">☰ منو</button><button class="secondary" id="accountTop">👤 ورود / ثبت‌نام</button><button class="primary" id="createTop">＋ ساخت</button></div>
 </header>
+<div id="siteMenuBackdrop" class="site-menu-backdrop" hidden></div>
+<nav id="siteMenu" class="site-menu" aria-label="منوی سایت" hidden>
+ <div class="site-menu-title"><strong>☰ بخش‌های دانشجویان</strong><button id="siteMenuClose" class="secondary" type="button" aria-label="بستن منو">✕</button></div>
+ <div class="site-menu-group"><b>🏠 عمومی</b><a href="/">صفحه اصلی</a><a href="#publicHub" data-menu-action="community">گروه عمومی دانشجویان</a></div>
+ <div class="site-menu-group"><b>📚 آموزشی</b><a href="#listing" data-menu-kind="page">صفحه‌های درسی</a><a href="#listing" data-menu-kind="group">گروه‌های دانشجویی</a></div>
+ <div class="site-menu-group"><b>🛠️ ابزارها</b><a href="/tools/pdf-converter.html">تبدیل PDF به Word و TXT</a></div>
+ <div class="site-menu-group"><b>👤 حساب کاربری</b><button type="button" data-menu-action="account">ورود / ثبت‌نام</button><button type="button" data-menu-action="create">ساخت صفحه یا گروه</button></div>
+</nav>
 <main>
  <section class="hero">
   <span class="eyebrow">پلتفرم آموزشی دانشجویان افغانستان</span>
@@ -82,5 +90,6 @@
 </dialog>
 <dialog id="adminDialog" class="content-dialog"><div class="dialog-head"><div><span class="eyebrow">پنل امن مدیریت</span><h2>مدیریت سایت دانشجویان</h2></div><button type="button" class="close" data-close="adminDialog">×</button></div><form id="adminLoginForm"><label for="adminEmail">ایمیل مدیر</label><input id="adminEmail" type="email" required autocomplete="username" placeholder="ایمیل مدیر اصلی"><label for="adminPassword">رمز مدیریت</label><input id="adminPassword" type="password" required autocomplete="current-password" placeholder="رمز مدیریت"><button class="primary" type="submit">ورود به پنل مدیریت</button></form><div id="adminStatus" class="status" hidden></div><section id="adminDashboard" hidden><div id="adminStats" class="admin-stats"></div><h3>آمار بازدید ۱۴ روز اخیر</h3><div id="trafficList" class="content-list"></div><h3>مدیریت صفحه‌ها و گروه‌ها</h3><div id="adminSpacesList" class="content-list"></div><h3>مدیریت پیام‌های گروه عمومی</h3><div id="adminCommunityList" class="content-list"></div><button class="secondary" id="adminLogout" type="button">خروج از مدیریت</button></section></dialog>
 <script src="/app.js"></script>
+<script src="/menu.js" defer></script>
 <dialog id="photoViewer" class="photo-viewer" aria-label="نمایش عکس بزرگ"><button id="photoViewerClose" type="button" class="photo-viewer-close" aria-label="بستن">×</button><img id="photoViewerImage" alt="عکس بزرگ"><p id="photoViewerCaption"></p></dialog>
 </body></html>
