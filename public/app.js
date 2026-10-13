@@ -85,8 +85,9 @@ $('#noteForm').addEventListener('submit', async e => {
   catch (err) { status('نوت ذخیره نشد: ' + err.message); }
 });
 function renderNotes() {
-  $('#notesList').innerHTML = notes.length ? notes.map(n => `<article class="note-card"><div class="note-top"><h4>${escapeHtml(n.title)}</h4><div class="share-item-actions"><button class="secondary small" type="button" data-copy-note="${escapeHtml(n.id)}">📋 کپی نوت</button><button class="secondary small" type="button" data-share-note="${escapeHtml(n.id)}">🔗 اشتراک نوت</button></div></div><p>${escapeHtml(n.body)}</p><small>${escapeHtml(n.createdAt || '')}</small></article>`).join('') : '<p>هنوز نوتی اضافه نشده است. می‌توانی نوت را از موبایل کپی و اینجا بچسبانی.</p>';
+  $('#notesList').innerHTML = notes.length ? notes.map(n => `<article class="note-card"><div class="note-top"><h4>${escapeHtml(n.title)}</h4><div class="share-item-actions"><button class="secondary small" type="button" data-copy-note="${escapeHtml(n.id)}">📋 کپی نوت</button><button class="secondary small" type="button" data-share-note="${escapeHtml(n.id)}">🔗 اشتراک نوت</button>${(window.spaces||[]).find(x=>x.id===currentItem?.id)?.canDelete?`<button class="secondary small" type="button" data-delete-note="${escapeHtml(n.id)}">🗑 حذف نوت</button>`:''}</div></div><p>${escapeHtml(n.body)}</p><small>${escapeHtml(n.createdAt || '')}</small></article>`).join('') : '<p>هنوز نوتی اضافه نشده است. می‌توانی نوت را از موبایل کپی و اینجا بچسبانی.</p>';
   $$('[data-share-note]').forEach(b=>b.addEventListener('click',()=>shareContent('note',b.dataset.shareNote,notes.find(n=>n.id===b.dataset.shareNote)?.title)));
+  $$('[data-delete-note]').forEach(b=>b.addEventListener('click',async()=>{if(!currentItem||!confirm('این نوت برای همیشه حذف شود؟'))return;try{await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/semester-notes?noteId=${encodeURIComponent(b.dataset.deleteNote)}`,{method:'DELETE'});notes=notes.filter(n=>n.id!==b.dataset.deleteNote);renderNotes();status('نوت حذف شد.');}catch(e){status('حذف نوت انجام نشد: '+e.message);}}));
   $$('[data-copy-note]').forEach(b => b.addEventListener('click', async () => { const n = notes.find(x => x.id === b.dataset.copyNote); try { await navigator.clipboard.writeText(n?.body || ''); alert('نوت کپی شد.'); } catch { alert('کپی خودکار ممکن نشد؛ متن را انتخاب و کپی کن.'); } }));
 }
 // Post photos use the existing private photo storage, so they also appear in the Photos tab.
@@ -150,14 +151,14 @@ function renderAssets() {
 let currentStudent=null;
 async function refreshStudent(){try{const d=await api('/api/account/me');currentStudent=d.student||null;}catch{currentStudent=null;}$('#accountTop').textContent=currentStudent?`👤 ${currentStudent.firstName}`:'👤 ورود / ثبت‌نام';$('#accountGreeting').textContent=currentStudent?`وارد شده: ${currentStudent.firstName} ${currentStudent.surname}`:'برای ساخت صفحه، گروه و ارسال پیام ثبت‌نام کن.';$('#accountForm').hidden=!!currentStudent;$('#studentLogout').hidden=!currentStudent;return currentStudent;}
 function openAccount(){$('#accountError').hidden=true;if(!$('#accountDialog').open)$('#accountDialog').showModal();}
-$('#accountTop').addEventListener('click',async()=>{await refreshStudent();openAccount();});
+$('#accountTop').addEventListener('click',async()=>{await refreshStudent();await loadSpaces();openAccount();});
 $('#accountForm').addEventListener('submit',async e=>{e.preventDefault();await accountAction('register');});
 $('#studentLogin').addEventListener('click',()=>accountAction('login'));
 if(new URLSearchParams(location.search).get('register')==='1'){refreshStudent().then(me=>{if(!me)openAccount();});}
 
-async function accountAction(action){const fields=$('#studentAcademicFields');fields.querySelectorAll('input').forEach(el=>el.required=action==='register');const error=$('#accountError');error.hidden=true;try{const d=await api('/api/account/'+action,{method:'POST',body:JSON.stringify({firstName:$('#studentFirst').value.trim(),surname:$('#studentSurname').value.trim(),university:$('#studentUniversity').value.trim(),field:$('#studentField').value.trim(),password:$('#studentPassword').value})});$('#studentPassword').value='';await refreshStudent();$('#accountDialog').close();status(`خوش آمدی ${d.student.firstName} ${d.student.surname}`);}catch(e){error.textContent=e.message;error.hidden=false;}}
-$('#studentLogout').addEventListener('click',async()=>{await api('/api/account/logout',{method:'POST'});await refreshStudent();$('#accountDialog').close();});
-refreshStudent();
+async function accountAction(action){const fields=$('#studentAcademicFields');fields.querySelectorAll('input').forEach(el=>el.required=action==='register');const error=$('#accountError');error.hidden=true;try{const d=await api('/api/account/'+action,{method:'POST',body:JSON.stringify({firstName:$('#studentFirst').value.trim(),surname:$('#studentSurname').value.trim(),university:$('#studentUniversity').value.trim(),field:$('#studentField').value.trim(),password:$('#studentPassword').value})});$('#studentPassword').value='';await refreshStudent();await loadSpaces();if(currentItem){await loadSemesterContent();const m=await api(`/api/spaces/${encodeURIComponent(currentItem.id)}/messages`);messages=m.messages||[];renderMessages();}$('#accountDialog').close();status(`خوش آمدی ${d.student.firstName} ${d.student.surname}`);}catch(e){error.textContent=e.message;error.hidden=false;}}
+$('#studentLogout').addEventListener('click',async()=>{await api('/api/account/logout',{method:'POST'});await refreshStudent();await loadSpaces();$('#accountDialog').close();});
+refreshStudent().then(()=>loadSpaces());
 const communityDialog = $('#communityDialog');
 const communityList = $('#communityList');
 let communityLastSignature = '';
@@ -203,7 +204,7 @@ async function renderAds(placement,host){if(!host)return;try{const d=await api('
 function trackPage() { let visitor = localStorage.getItem('dj_visitor_id'); if (!visitor) { visitor = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`).replace(/-/g,''); localStorage.setItem('dj_visitor_id', visitor); } fetch('/api/track', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({visitorId:visitor, path:location.pathname})}).catch(() => {}); }
 trackPage();
 renderAds('home', document.querySelector('.toolbar')?.parentElement);
-loadSpaces();
+// Initial space listing loads after the student session is resolved.
 
 async function shareLink(url,title){
  try { if(navigator.share){await navigator.share({title,url});return;} } catch(e){if(e.name==='AbortError')return;}
