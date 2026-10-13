@@ -32,7 +32,7 @@ public class MainActivity extends Activity {
     private WebView web;
     private boolean online=false;
     private LinearLayout adList;
-    private static final String ADS_URL="https://daneshjuyan.pages.dev/api/ads?placement=app";
+    private static final String ADS_URL="https://daneshjuyan.pages.dev/api/app-ads";
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
