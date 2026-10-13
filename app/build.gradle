@@ -17,4 +17,10 @@ tasks.register('downloadPersianOCR') {
         }
     }
 }
-preBuild.dependsOn downloadPersianOCR
+// Ensure the OCR model is present before Android packages assets into the APK.
+tasks.configureEach { task ->
+    if (task.name.startsWith('merge') && task.name.endsWith('Assets')) {
+        task.dependsOn(downloadPersianOCR)
+    }
+}
+preBuild.dependsOn(downloadPersianOCR)
