@@ -9,7 +9,11 @@ export async function onRequestGet({ request, env }) {
   }
   let title = 'دانشجویان | صفحه‌ها و گروه‌ها';
   let description = 'گروه‌های دانشجویی و منابع درسی افغانستان';
-  if (p.get('community') === '1') {
+  if (p.get('tool') === 'pdf') {
+    destination.pathname='/tools/pdf-converter.html';
+    title='تبدیل PDF فارسی و دری به Word و TXT | ابزار رایگان دانشجویان';
+    description='فایل PDF فارسی، دری یا اسکن‌شده را به Word قابل ویرایش و متن TXT تبدیل کنید؛ با تشخیص متن OCR، پشتیبانی از راست‌به‌چپ و پیش‌نمایش برای اصلاح نتیجه. کیفیت خروجی به فایل اصلی بستگی دارد.';
+  } else if (p.get('community') === '1') {
     title = 'گروه عمومی دانشجویان افغانستان | دانشجویان';
     description = 'گفتگو و تبادل معلومات میان دانشجویان افغانستان';
   } else if (p.get('space') && env.DB) {
