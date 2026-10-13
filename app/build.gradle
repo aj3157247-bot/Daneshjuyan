@@ -1,32 +1,77 @@
 plugins { id 'com.android.application' }
-android { namespace 'af.daneshjuyan.app'; compileSdk 35
-    defaultConfig { applicationId 'af.daneshjuyan.app'; minSdk 24; targetSdk 35; versionCode 1; versionName '1.0' }
+
+android {
+    namespace 'af.daneshjuyan.app'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'af.daneshjuyan.app'
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+    }
 }
+
 dependencies {
     implementation 'com.tom-roush:pdfbox-android:2.0.27.0'
     implementation 'com.rmtheis:tess-two:9.1.0'
 }
+
+// Download the official Persian Tesseract model robustly before packaging assets.
 tasks.register('downloadPersianOCR') {
+    outputs.file(file('src/main/assets/tessdata/fas.traineddata'))
     doLast {
         def dest = file('src/main/assets/tessdata/fas.traineddata')
-        if (!dest.exists() || dest.length() < 1000000) {
-            dest.parentFile.mkdirs()
-            def temp = file(dest.absolutePath + '.download')
+        dest.parentFile.mkdirs()
+        def temp = file(dest.absolutePath + '.download')
+        def modelUrl = 'https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/fas.traineddata'
+        Exception lastError = null
+        boolean downloaded = false
+
+        // Always fetch into a temporary file; never replace a usable model with a partial response.
+        for (int attempt = 1; attempt <= 4 && !downloaded; attempt++) {
+            temp.delete()
             try {
-                new URL('https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/fas.traineddata').withInputStream { input ->
-                    temp.withOutputStream { output -> output << input }
+                def connection = new URL(modelUrl).openConnection()
+                connection.setConnectTimeout(20000)
+                connection.setReadTimeout(60000)
+                connection.setRequestProperty('User-Agent', 'Daneshjuyan-Android-Build/1.0')
+                connection.connect()
+                if (connection instanceof HttpURLConnection && connection.responseCode != 200) {
+                    throw new GradleException("Persian OCR download returned HTTP ${connection.responseCode}")
                 }
-                if (temp.length() < 1000000) throw new GradleException('Persian OCR model download incomplete')
+                connection.getInputStream().withCloseable { input ->
+                    temp.withOutputStream { output ->
+                        byte[] buffer = new byte[16384]
+                        int count
+                        while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count)
+                    }
+                }
+                // The model is a binary file; this threshold rejects error pages and truncated downloads.
+                if (!temp.exists() || temp.length() < 500000) {
+                    throw new GradleException("Persian OCR model is too small (${temp.exists() ? temp.length() : 0} bytes)")
+                }
                 java.nio.file.Files.move(temp.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-            } finally { temp.delete() }
+                downloaded = true
+            } catch (Exception ex) {
+                lastError = ex
+                temp.delete()
+                if (attempt < 4) {
+                    logger.warn("Persian OCR download attempt ${attempt}/4 failed: ${ex.message}; retrying")
+                    sleep(1500L * attempt)
+                }
+            }
         }
-        if (dest.length() < 1000000) throw new GradleException('Missing or incomplete Persian OCR model')
+        if (!downloaded) {
+            throw new GradleException('Unable to download a complete Persian OCR model after 4 attempts. Check GitHub Actions network access.', lastError)
+        }
+        logger.lifecycle("Persian OCR model ready (${dest.length()} bytes)")
     }
 }
-// Ensure the OCR model is present before Android packages assets into the APK.
+
 tasks.configureEach { task ->
     if (task.name.startsWith('merge') && task.name.endsWith('Assets')) {
-        task.dependsOn(downloadPersianOCR)
+        task.dependsOn('downloadPersianOCR')
     }
 }
-preBuild.dependsOn(downloadPersianOCR)
+preBuild.dependsOn('downloadPersianOCR')
