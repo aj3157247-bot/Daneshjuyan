@@ -5,14 +5,14 @@
 <meta name="theme-color" content="#116b5b"><title>دانشجویان | صفحه‌ها و گروه‌ها</title>
 <link rel="stylesheet" href="/styles.css">
 <link rel="stylesheet" href="/premium.css">
-<link rel="icon" type="image/png" href="/icons/daneshjuyan-2026-512.png?v=3">
-<link rel="apple-touch-icon" href="/icons/daneshjuyan-2026-512.png?v=3">
-<link rel="manifest" href="/manifest.webmanifest?v=3">
+<link rel="icon" type="image/png" href="/icons/daneshjuyan-webview.png">
+<link rel="apple-touch-icon" href="/icons/daneshjuyan-webview.png">
+<link rel="manifest" href="/manifest.webmanifest">
 <meta name="description" content="دانشجویان؛ فضای گفتگو، گروه‌های دانشجویی و منابع درسی افغانستان">
 </head>
 <body>
 <header class="topbar">
- <a class="brand" href="/"><img class="logo" src="/icons/daneshjuyan-2026-512.png?v=3" alt="لوگوی دانشجویان" style="object-fit:cover;border-radius:18px;display:block"><span>دانشجویان<small>صفحه‌ها و گروه‌های دانشجویی</small></span></a>
+ <a class="brand" href="/"><img class="logo" src="/icons/daneshjuyan-webview.png" alt="لوگوی دانشجویان" style="object-fit:cover;border-radius:18px;display:block"><span>دانشجویان<small>صفحه‌ها و گروه‌های دانشجویی</small></span></a>
  <div class="top-actions"><button class="secondary" id="siteMenuButton" type="button" aria-expanded="false" aria-controls="siteMenu">☰ منو</button><button class="secondary" id="accountTop">👤 ورود / ثبت‌نام</button><button class="primary" id="createTop">＋ ساخت</button></div>
 </header>
 <div id="siteMenuBackdrop" class="site-menu-backdrop" hidden></div>
@@ -21,6 +21,7 @@
  <div class="site-menu-group"><b>🏠 عمومی</b><a href="/">صفحه اصلی</a><a href="#publicHub" data-menu-action="community">گروه عمومی دانشجویان</a></div>
  <div class="site-menu-group"><b>📚 آموزشی</b><a href="#listing" data-menu-kind="page">صفحه‌های درسی</a><a href="#listing" data-menu-kind="group">گروه‌های دانشجویی</a></div>
  <div class="site-menu-group"><b>🛠️ ابزارها</b><a href="/pdf-to-word">تبدیل PDF به Word و TXT</a></div>
+ <div class="site-menu-group"><b>📲 بازارک اپلیکیشن‌ها</b><a href="#appDownloads">دانلود اپلیکیشن دانشجویان</a><a href="#appDownloads">دانلود دانش‌ابزار (ابزارهای آفلاین)</a></div>
  <div class="site-menu-group"><b>👤 حساب کاربری</b><button type="button" data-menu-action="account">ورود / ثبت‌نام</button><button type="button" data-menu-action="create">ساخت صفحه یا گروه</button></div>
 </nav>
 <main>
@@ -31,6 +32,13 @@
   <div class="hero-points"><span>✓ نوت‌های قابل کپی</span><span>✓ صفحات خصوصی با رمز</span><span>✓ گفتگوی جداگانه</span><span>✓ ۸ سمستر مستقل</span></div>
   <button class="primary big" id="createHero">＋ ساخت صفحه یا گروه</button>
  </section>
+ <section class="app-downloads" id="appDownloads" aria-labelledby="appDownloadsTitle">
+ <div class="app-downloads-head"><span class="eyebrow">📲 بازارک اپلیکیشن‌ها</span><h2 id="appDownloadsTitle">دانلود اپلیکیشن‌های ما</h2><p>دو اپلیکیشن برای یادگیری و ابزارهای کاربردی فارسی. نسخه اندروید (APK).</p></div>
+ <div class="app-download-grid">
+  <article class="app-download-card"><div class="app-download-symbol" aria-hidden="true">🎓</div><div><h3>دانشجویان</h3><p>دسترسی آسان به سایت آنلاین دانشجویان، گروه‌ها و محتوای آموزشی.</p><span class="app-download-tag">اندروید • نیازمند اینترنت برای محتوای آنلاین</span></div><a class="primary app-download-link" href="/downloads/daneshjuyan.apk" download="Daneshjuyan.apk" type="application/vnd.android.package-archive">⬇ دانلود دانشجویان</a></article>
+  <article class="app-download-card"><div class="app-download-symbol" aria-hidden="true">🛠️</div><div><h3>دانش‌ابزار</h3><p>مجموعه ابزارهای فارسی؛ بخش‌های آفلاین و دسترسی به سایت دانشجویان.</p><span class="app-download-tag">اندروید • ابزارهای آفلاین</span></div><a class="secondary app-download-link" id="daneshAbzarDownload" href="#appDownloads" aria-disabled="true" title="پس از بارگذاری APK در فضای دانلود، لینک فعال می‌شود">دانلود دانش‌ابزار (به‌زودی)</a></article>
+ </div><p class="app-download-note">برای امنیت، فایل APK را فقط از منبع رسمی دانلود کنید. ممکن است اندروید هنگام نصب اجازه نصب از این منبع را درخواست کند.</p>
+</section>
  <section class="public-hub" id="publicHub"><div class="hub-icon">🌍</div><div class="hub-copy"><span class="eyebrow">انجمن سراسری دانشجویان افغانستان</span><h2>گروه عمومی دانشجویان 💬</h2><p>با دانشجویان دانشگاه‌های مختلف آشنا شو، تجربه‌هایت را شریک کن و گفتگو را آغاز کن. پیام‌ها با نام حساب دانشجویی نمایش داده می‌شوند.</p><div class="hub-badges"><span>👥 همه دانشگاه‌ها</span><span>🛡️ مدیریت و نظارت</span><span>💬 گفتگوی جمعی</span></div><button class="primary big" id="communityTop">ورود به گفتگوی عمومی ←</button><button class="secondary hub-share" type="button" id="shareCommunity">🔗 اشتراک‌گذاری گروه عمومی</button></div></section>
  <section class="feature-row" aria-label="قابلیت‌ها"><article><span>▤</span><div><b>کتابخانه درسی</b><small>نوت‌ها و منابع هر صفحه</small></div></article><article><span>☏</span><div><b>گروه‌های گفتگو</b><small>گفتگوهای اختصاصی</small></div></article><article><span>⌕</span><div><b>جستجوی سریع</b><small>پیدا کردن صنف و رشته</small></div></article></section>
  <section class="toolbar">
