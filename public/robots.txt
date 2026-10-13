@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://daneshjuyan.pages.dev/sitemap.xml
