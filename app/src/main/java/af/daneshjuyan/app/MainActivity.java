@@ -59,9 +59,6 @@ public class MainActivity extends Activity {
         root.addView(button("🌐 ورود به سایت دانشجویان",this::showSite));
         root.addView(title("ابزار مستقل بدون اینترنت",16));
         root.addView(button("📴 تبدیل PDF فارسی به Word و TXT (آفلاین)",this::offline));
-        TextView adHeader=title("📣 تبلیغات و اطلاعیه‌ها",20);
-        adHeader.setTextColor(Color.rgb(13,82,77));root.addView(adHeader);
-        root.addView(title("آخرین تبلیغات دریافت‌شده حتی بدون اینترنت نمایش داده می‌شوند.",13));
         ScrollView adScroll=new ScrollView(this);
         adList=new LinearLayout(this);adList.setOrientation(LinearLayout.VERTICAL);
         adScroll.addView(adList);
@@ -76,18 +73,28 @@ public class MainActivity extends Activity {
                 connection=(HttpURLConnection)new URL(ADS_URL).openConnection();
                 connection.setConnectTimeout(8000);connection.setReadTimeout(8000);
                 connection.setRequestProperty("Accept","application/json");
-                if(connection.getResponseCode()!=200)return;
+                int responseCode=connection.getResponseCode();
+                if(responseCode!=200){
+                    reportAdsError("سرور تبلیغات اپلیکیشن پاسخ " + responseCode + " داد. انتشار API و جدول app_ads را بررسی کنید.");
+                    return;
+                }
                 ByteArrayOutputStream buf=new ByteArrayOutputStream();
                 try(InputStream in=connection.getInputStream()){
                     byte[] bytes=new byte[8192];int n;
                     while((n=in.read(bytes))!=-1)buf.write(bytes,0,n);
                 }
-                JSONArray ads=new JSONObject(buf.toString("UTF-8")).getJSONArray("ads");
+                JSONObject response=new JSONObject(buf.toString("UTF-8"));
+                JSONArray ads=response.getJSONArray("ads");
                 String raw=ads.toString();
                 getPreferences(0).edit().putString("cached_ads",raw).apply();
                 runOnUiThread(()->{if(adList!=null)renderAds(raw);});
-            }catch(Exception ignored){}finally{if(connection!=null)connection.disconnect();}
+            }catch(Exception error){
+                reportAdsError("دریافت تبلیغات اپلیکیشن ناموفق بود: " + error.getClass().getSimpleName());
+            }finally{if(connection!=null)connection.disconnect();}
         }).start();
+    }
+    private void reportAdsError(String message){
+        runOnUiThread(()->Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show());
     }
     private GradientDrawable cardBackground(){
         GradientDrawable bg=new GradientDrawable();
@@ -99,7 +106,7 @@ public class MainActivity extends Activity {
         adList.removeAllViews();
         try{
             JSONArray ads=new JSONArray(raw);
-            if(ads.length()==0){adList.addView(title("هنوز تبلیغی ثبت نشده است.",15));return;}
+            if(ads.length()==0)return;
             for(int i=0;i<ads.length();i++){
                 JSONObject ad=ads.getJSONObject(i);
                 String name=ad.optString("title","تبلیغ"),description=ad.optString("description","");
@@ -124,7 +131,7 @@ public class MainActivity extends Activity {
                     }));
                 }
             }
-        }catch(Exception e){adList.addView(title("نمایش تبلیغات ذخیره‌شده ممکن نیست.",14));}
+        }catch(Exception e){reportAdsError("خواندن تبلیغات ذخیره‌شده ممکن نیست.");}
     }
     private void loadAdImage(String url,ImageView view){
         File saved=new File(getFilesDir(),"ad-image-"+Integer.toHexString(url.hashCode())+".png");
