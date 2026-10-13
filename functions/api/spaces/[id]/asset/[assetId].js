@@ -1,10 +1,15 @@
-import {validSession,requireDb,json} from '../../../_utils.js';
 import {getStudent} from '../../../_student.js';
+import {validSession,requireDb,json} from '../../../_utils.js';
 export async function onRequestGet({request,env,params}){
  try{
   requireDb(env);
+  if(!await getStudent(request,env)) {
+   const dest=new URL('/?register=1',request.url);
+   const accepts=request.headers.get('accept')||'';
+   if(accepts.includes('text/html')||request.headers.get('sec-fetch-mode')==='navigate')return Response.redirect(dest.href,302);
+   return json({error:'برای دانلود فایل‌ها و عکس‌ها ابتدا ثبت‌نام یا وارد حساب خود شو.',registerUrl:dest.pathname+dest.search},401);
+  }
   if(!env.SESSION_SECRET||!await validSession(request,params.id,env.SESSION_SECRET))return json({error:'دسترسی نیاز به رمز صفحه دارد.'},401);
-  if(!await getStudent(request,env))return json({error:'برای دانلود یا مشاهده فایل‌ها و عکس‌ها ابتدا ثبت‌نام کن و وارد حساب دانشجویی شو.'},401);
   let row=await env.DB.prepare('SELECT id,file_name AS fileName,mime_type AS mimeType FROM space_files WHERE id=? AND space_id=?').bind(params.assetId,params.id).first();
   if(!row)row=await env.DB.prepare('SELECT id,file_name AS fileName,mime_type AS mimeType FROM space_photos WHERE id=? AND space_id=?').bind(params.assetId,params.id).first();
   if(!row)return json({error:'فایل پیدا نشد.'},404);
