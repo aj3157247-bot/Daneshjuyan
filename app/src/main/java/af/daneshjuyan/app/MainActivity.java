@@ -16,6 +16,11 @@ import com.tom_roush.pdfbox.text.PDFTextStripper;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.*;
+import org.json.*;
+import java.net.*;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 
 public class MainActivity extends Activity {
     private static final int PICK=101, SAVE=102;
@@ -26,7 +31,9 @@ public class MainActivity extends Activity {
     private Uri selected;
     private WebView web;
     private boolean online=false;
-    private CheckBox forceOcr;
+    private LinearLayout adList;
+    private static final String ADS_URL="https://daneshjuyan.pages.dev/api/ads?placement=app";
+
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         PDFBoxResourceLoader.init(getApplicationContext());
@@ -52,6 +59,93 @@ public class MainActivity extends Activity {
         root.addView(button("🌐 ورود به سایت دانشجویان",this::showSite));
         root.addView(title("ابزار مستقل بدون اینترنت",16));
         root.addView(button("📴 تبدیل PDF فارسی به Word و TXT (آفلاین)",this::offline));
+        TextView adHeader=title("📣 تبلیغات و اطلاعیه‌ها",20);
+        adHeader.setTextColor(Color.rgb(13,82,77));root.addView(adHeader);
+        root.addView(title("آخرین تبلیغات دریافت‌شده حتی بدون اینترنت نمایش داده می‌شوند.",13));
+        ScrollView adScroll=new ScrollView(this);
+        adList=new LinearLayout(this);adList.setOrientation(LinearLayout.VERTICAL);
+        adScroll.addView(adList);
+        root.addView(adScroll,new LinearLayout.LayoutParams(-1,0,1));
+        renderAds(getPreferences(0).getString("cached_ads","[]"));
+        refreshAds();
+    }
+    private void refreshAds(){
+        new Thread(()->{
+            HttpURLConnection connection=null;
+            try{
+                connection=(HttpURLConnection)new URL(ADS_URL).openConnection();
+                connection.setConnectTimeout(8000);connection.setReadTimeout(8000);
+                connection.setRequestProperty("Accept","application/json");
+                if(connection.getResponseCode()!=200)return;
+                ByteArrayOutputStream buf=new ByteArrayOutputStream();
+                try(InputStream in=connection.getInputStream()){
+                    byte[] bytes=new byte[8192];int n;
+                    while((n=in.read(bytes))!=-1)buf.write(bytes,0,n);
+                }
+                JSONArray ads=new JSONObject(buf.toString("UTF-8")).getJSONArray("ads");
+                String raw=ads.toString();
+                getPreferences(0).edit().putString("cached_ads",raw).apply();
+                runOnUiThread(()->{if(adList!=null)renderAds(raw);});
+            }catch(Exception ignored){}finally{if(connection!=null)connection.disconnect();}
+        }).start();
+    }
+    private GradientDrawable cardBackground(){
+        GradientDrawable bg=new GradientDrawable();
+        bg.setColor(Color.WHITE);bg.setCornerRadius(24);
+        bg.setStroke(1,Color.rgb(221,232,231));return bg;
+    }
+    private void renderAds(String raw){
+        if(adList==null)return;
+        adList.removeAllViews();
+        try{
+            JSONArray ads=new JSONArray(raw);
+            if(ads.length()==0){adList.addView(title("هنوز تبلیغی ثبت نشده است.",15));return;}
+            for(int i=0;i<ads.length();i++){
+                JSONObject ad=ads.getJSONObject(i);
+                String name=ad.optString("title","تبلیغ"),description=ad.optString("description","");
+                String target=ad.optString("targetUrl",""),picture=ad.optString("imageUrl","");
+                LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);
+                card.setPadding(22,18,22,18);card.setBackground(cardBackground());
+                card.setElevation(4);
+                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);
+                lp.setMargins(5,8,5,14);adList.addView(card,lp);
+                TextView badge=title("تبلیغ",12);badge.setTextColor(Color.rgb(9,120,107));card.addView(badge);
+                TextView heading=title(name,19);heading.setTextColor(Color.rgb(23,51,58));card.addView(heading);
+                if(!description.isEmpty())card.addView(title(description,14));
+                if(picture.startsWith("https://")){
+                    ImageView image=new ImageView(this);image.setAdjustViewBounds(true);
+                    image.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    card.addView(image,new LinearLayout.LayoutParams(-1,-2));
+                    loadAdImage(picture,image);
+                }
+                if(target.startsWith("https://")||target.startsWith("http://")){
+                    card.addView(button("مشاهده تبلیغ ↗",()->{
+                        try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(target)));}catch(Exception ignored){}
+                    }));
+                }
+            }
+        }catch(Exception e){adList.addView(title("نمایش تبلیغات ذخیره‌شده ممکن نیست.",14));}
+    }
+    private void loadAdImage(String url,ImageView view){
+        File saved=new File(getFilesDir(),"ad-image-"+Integer.toHexString(url.hashCode())+".png");
+        if(saved.exists()){
+            Bitmap cached=BitmapFactory.decodeFile(saved.getAbsolutePath());
+            if(cached!=null)view.setImageBitmap(cached);
+        }
+        new Thread(()->{
+            try{
+                HttpURLConnection c=(HttpURLConnection)new URL(url).openConnection();
+                c.setConnectTimeout(5000);c.setReadTimeout(7000);
+                try(InputStream in=c.getInputStream()){
+                    File imageFile=new File(getFilesDir(),"ad-image-"+Integer.toHexString(url.hashCode())+".png");
+                    try(OutputStream out=new FileOutputStream(imageFile)){
+                        byte[] bytes=new byte[8192];int n;while((n=in.read(bytes))!=-1)out.write(bytes,0,n);
+                    }
+                    Bitmap bmp=BitmapFactory.decodeFile(imageFile.getAbsolutePath());
+                    if(bmp!=null)runOnUiThread(()->view.setImageBitmap(bmp));
+                }finally{c.disconnect();}
+            }catch(Exception ignored){}
+        }).start();
     }
     private void showSite(){
         online=true;base();
@@ -75,7 +169,6 @@ public class MainActivity extends Activity {
             i.setType("application/pdf");i.addCategory(Intent.CATEGORY_OPENABLE);
             startActivityForResult(i,PICK);
         }));
-        forceOcr=new CheckBox(this);forceOcr.setText("OCR اجباری برای PDF با حروف خراب یا اسکن‌شده");root.addView(forceOcr);
         status=title("ابتدا یک PDF انتخاب کنید.",14);root.addView(status);
         editor=new EditText(this);editor.setGravity(Gravity.TOP|Gravity.RIGHT);
         editor.setTextDirection(View.TEXT_DIRECTION_RTL);editor.setTextSize(15);
@@ -90,8 +183,7 @@ public class MainActivity extends Activity {
         if(request==PICK){
             selected=data.getData();
             status.setText("در حال استخراج متن و OCR فارسی... لطفاً صبر کنید.");
-            boolean forced=forceOcr.isChecked();
-            new Thread(()->convert(selected,forced)).start();
+            new Thread(()->convert(selected)).start();
         }else if(request==SAVE){
             try(OutputStream out=getContentResolver().openOutputStream(data.getData())){
                 String text=editor.getText().toString();
@@ -101,7 +193,8 @@ public class MainActivity extends Activity {
             }catch(Exception ex){Toast.makeText(this,"خطا: "+ex.getMessage(),Toast.LENGTH_LONG).show();}
         }
     }
-    private void convert(Uri uri, boolean forced){
+    private void convert(Uri uri){
+        String result="";
         try{
             File pdf=new File(getCacheDir(),"input.pdf");
             try(InputStream in=getContentResolver().openInputStream(uri);
@@ -111,65 +204,39 @@ public class MainActivity extends Activity {
             try(PDDocument doc=PDDocument.load(pdf)){
                 PDFRenderer renderer=new PDFRenderer(doc);
                 PDFTextStripper stripper=new PDFTextStripper();
-                TessBaseAPI tess=null;
+                TessBaseAPI tess=new TessBaseAPI();
+                File dir=new File(getFilesDir(),"ocr");File trained=new File(dir,"tessdata/fas.traineddata");
+                trained.getParentFile().mkdirs();
+                if(!trained.exists()){
+                    try(InputStream in=getAssets().open("tessdata/fas.traineddata");
+                        OutputStream out=new FileOutputStream(trained)){
+                        byte[] buf=new byte[8192];int n;while((n=in.read(buf))!=-1)out.write(buf,0,n);
+                    }
+                }
+                if(!tess.init(dir.getAbsolutePath(),"fas"))throw new IOException("مدل OCR فارسی بارگذاری نشد");
                 StringBuilder sb=new StringBuilder();
-                String ocrProblem=null;
                 try{
                     for(int p=0;p<doc.getNumberOfPages();p++){
                         stripper.setStartPage(p+1);stripper.setEndPage(p+1);
                         String extracted=stripper.getText(doc).trim();
-                        boolean useOcr=forced || extracted.length()<35 || extracted.indexOf('\uFFFD')>=0;
+                        // OCR for scanned pages and PDFs with corrupted/empty text
+                        boolean useOcr=extracted.length()<35 || extracted.indexOf('\uFFFD')>=0;
                         String page=extracted;
                         if(useOcr){
-                            if(tess==null && ocrProblem==null){
-                                try{tess=initializePersianOcr();}
-                                catch(Exception e){ocrProblem=e.getMessage();}
-                            }
-                            if(tess!=null){
-                                Bitmap bitmap=null;
-                                try{
-                                    bitmap=renderer.renderImageWithDPI(p,180);
-                                    tess.setImage(bitmap);
-                                    String recognized=tess.getUTF8Text();
-                                    page=recognized==null?"":recognized;
-                                    tess.clear();
-                                }finally{if(bitmap!=null)bitmap.recycle();}
-                            }
+                            Bitmap bitmap=renderer.renderImageWithDPI(p,180);
+                            tess.setImage(bitmap);page=tess.getUTF8Text();
+                            bitmap.recycle();tess.clear();
                         }
                         sb.append(page==null?"":page).append("\n\n");
                         int current=p+1,total=doc.getNumberOfPages();
                         runOnUiThread(()->status.setText("صفحه "+current+" از "+total));
                     }
-                }finally{if(tess!=null)tess.end();}
-                String text=sb.toString();
-                String warning=ocrProblem;
-                runOnUiThread(()->{
-                    editor.setText(text);
-                    if(warning!=null){
-                        status.setText("متن قابل استخراج نمایش داده شد؛ OCR فارسی اجرا نشد: "+warning);
-                    }else status.setText("تبدیل کامل شد. متن را بررسی و ذخیره کنید.");
-                });
+                }finally{tess.end();}
+                result=sb.toString();
             }
+            String text=result;
+            runOnUiThread(()->{editor.setText(text);status.setText("تبدیل کامل شد. متن را بررسی و ذخیره کنید.");});
         }catch(Exception e){runOnUiThread(()->status.setText("خطا: "+e.getMessage()));}
-    }
-    private TessBaseAPI initializePersianOcr() throws IOException{
-        File dir=new File(getFilesDir(),"ocr");
-        File trained=new File(dir,"tessdata/fas.traineddata");
-        if(!trained.getParentFile().exists() && !trained.getParentFile().mkdirs())
-            throw new IOException("ساخت پوشه مدل ممکن نشد");
-        // Always refresh from bundled assets to repair a stale or partial previous copy.
-        try(InputStream in=getAssets().open("tessdata/fas.traineddata");
-            OutputStream out=new FileOutputStream(trained)){
-            byte[] buf=new byte[16384];int n;while((n=in.read(buf))!=-1)out.write(buf,0,n);
-        }catch(IOException e){throw new IOException("فایل مدل فارسی داخل APK یافت نشد یا خوانده نشد: "+e.getMessage(),e);}
-        if(trained.length()<100000)
-            throw new IOException("مدل فارسی ناقص است ("+trained.length()+" بایت)");
-        TessBaseAPI api=new TessBaseAPI();
-        boolean ok=false;
-        try{ok=api.init(dir.getAbsolutePath(),"fas");}
-        catch(Exception e){api.end();throw new IOException("راه‌اندازی موتور OCR: "+e.getMessage(),e);}
-        if(!ok){api.end();throw new IOException("مدل OCR فارسی توسط Tesseract پذیرفته نشد؛ سازگاری فایل مدل و موتور باید بررسی شود");}
-        return api;
     }
     private void save(String format){
         if(editor==null||editor.getText().length()==0){Toast.makeText(this,"ابتدا PDF را تبدیل کنید",Toast.LENGTH_SHORT).show();return;}
