@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
     private Uri selected;
     private WebView web;
     private boolean online=false;
+    private CheckBox forceOcr;
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         PDFBoxResourceLoader.init(getApplicationContext());
@@ -74,6 +75,7 @@ public class MainActivity extends Activity {
             i.setType("application/pdf");i.addCategory(Intent.CATEGORY_OPENABLE);
             startActivityForResult(i,PICK);
         }));
+        forceOcr=new CheckBox(this);forceOcr.setText("OCR اجباری برای PDF با حروف خراب یا اسکن‌شده");root.addView(forceOcr);
         status=title("ابتدا یک PDF انتخاب کنید.",14);root.addView(status);
         editor=new EditText(this);editor.setGravity(Gravity.TOP|Gravity.RIGHT);
         editor.setTextDirection(View.TEXT_DIRECTION_RTL);editor.setTextSize(15);
@@ -88,7 +90,8 @@ public class MainActivity extends Activity {
         if(request==PICK){
             selected=data.getData();
             status.setText("در حال استخراج متن و OCR فارسی... لطفاً صبر کنید.");
-            new Thread(()->convert(selected)).start();
+            boolean forced=forceOcr.isChecked();
+            new Thread(()->convert(selected,forced)).start();
         }else if(request==SAVE){
             try(OutputStream out=getContentResolver().openOutputStream(data.getData())){
                 String text=editor.getText().toString();
@@ -98,8 +101,7 @@ public class MainActivity extends Activity {
             }catch(Exception ex){Toast.makeText(this,"خطا: "+ex.getMessage(),Toast.LENGTH_LONG).show();}
         }
     }
-    private void convert(Uri uri){
-        String result="";
+    private void convert(Uri uri, boolean forced){
         try{
             File pdf=new File(getCacheDir(),"input.pdf");
             try(InputStream in=getContentResolver().openInputStream(uri);
@@ -109,39 +111,65 @@ public class MainActivity extends Activity {
             try(PDDocument doc=PDDocument.load(pdf)){
                 PDFRenderer renderer=new PDFRenderer(doc);
                 PDFTextStripper stripper=new PDFTextStripper();
-                TessBaseAPI tess=new TessBaseAPI();
-                File dir=new File(getFilesDir(),"ocr");File trained=new File(dir,"tessdata/fas.traineddata");
-                trained.getParentFile().mkdirs();
-                if(!trained.exists()){
-                    try(InputStream in=getAssets().open("tessdata/fas.traineddata");
-                        OutputStream out=new FileOutputStream(trained)){
-                        byte[] buf=new byte[8192];int n;while((n=in.read(buf))!=-1)out.write(buf,0,n);
-                    }
-                }
-                if(!tess.init(dir.getAbsolutePath(),"fas"))throw new IOException("مدل OCR فارسی بارگذاری نشد");
+                TessBaseAPI tess=null;
                 StringBuilder sb=new StringBuilder();
+                String ocrProblem=null;
                 try{
                     for(int p=0;p<doc.getNumberOfPages();p++){
                         stripper.setStartPage(p+1);stripper.setEndPage(p+1);
                         String extracted=stripper.getText(doc).trim();
-                        // OCR for scanned pages and PDFs with corrupted/empty text
-                        boolean useOcr=extracted.length()<35 || extracted.indexOf('\uFFFD')>=0;
+                        boolean useOcr=forced || extracted.length()<35 || extracted.indexOf('\uFFFD')>=0;
                         String page=extracted;
                         if(useOcr){
-                            Bitmap bitmap=renderer.renderImageWithDPI(p,180);
-                            tess.setImage(bitmap);page=tess.getUTF8Text();
-                            bitmap.recycle();tess.clear();
+                            if(tess==null && ocrProblem==null){
+                                try{tess=initializePersianOcr();}
+                                catch(Exception e){ocrProblem=e.getMessage();}
+                            }
+                            if(tess!=null){
+                                Bitmap bitmap=null;
+                                try{
+                                    bitmap=renderer.renderImageWithDPI(p,180);
+                                    tess.setImage(bitmap);
+                                    String recognized=tess.getUTF8Text();
+                                    page=recognized==null?"":recognized;
+                                    tess.clear();
+                                }finally{if(bitmap!=null)bitmap.recycle();}
+                            }
                         }
                         sb.append(page==null?"":page).append("\n\n");
                         int current=p+1,total=doc.getNumberOfPages();
                         runOnUiThread(()->status.setText("صفحه "+current+" از "+total));
                     }
-                }finally{tess.end();}
-                result=sb.toString();
+                }finally{if(tess!=null)tess.end();}
+                String text=sb.toString();
+                String warning=ocrProblem;
+                runOnUiThread(()->{
+                    editor.setText(text);
+                    if(warning!=null){
+                        status.setText("متن قابل استخراج نمایش داده شد؛ OCR فارسی اجرا نشد: "+warning);
+                    }else status.setText("تبدیل کامل شد. متن را بررسی و ذخیره کنید.");
+                });
             }
-            String text=result;
-            runOnUiThread(()->{editor.setText(text);status.setText("تبدیل کامل شد. متن را بررسی و ذخیره کنید.");});
         }catch(Exception e){runOnUiThread(()->status.setText("خطا: "+e.getMessage()));}
+    }
+    private TessBaseAPI initializePersianOcr() throws IOException{
+        File dir=new File(getFilesDir(),"ocr");
+        File trained=new File(dir,"tessdata/fas.traineddata");
+        if(!trained.getParentFile().exists() && !trained.getParentFile().mkdirs())
+            throw new IOException("ساخت پوشه مدل ممکن نشد");
+        // Always refresh from bundled assets to repair a stale or partial previous copy.
+        try(InputStream in=getAssets().open("tessdata/fas.traineddata");
+            OutputStream out=new FileOutputStream(trained)){
+            byte[] buf=new byte[16384];int n;while((n=in.read(buf))!=-1)out.write(buf,0,n);
+        }catch(IOException e){throw new IOException("فایل مدل فارسی داخل APK یافت نشد یا خوانده نشد: "+e.getMessage(),e);}
+        if(trained.length()<100000)
+            throw new IOException("مدل فارسی ناقص است ("+trained.length()+" بایت)");
+        TessBaseAPI api=new TessBaseAPI();
+        boolean ok=false;
+        try{ok=api.init(dir.getAbsolutePath(),"fas");}
+        catch(Exception e){api.end();throw new IOException("راه‌اندازی موتور OCR: "+e.getMessage(),e);}
+        if(!ok){api.end();throw new IOException("مدل OCR فارسی توسط Tesseract پذیرفته نشد؛ سازگاری فایل مدل و موتور باید بررسی شود");}
+        return api;
     }
     private void save(String format){
         if(editor==null||editor.getText().length()==0){Toast.makeText(this,"ابتدا PDF را تبدیل کنید",Toast.LENGTH_SHORT).show();return;}
