@@ -211,16 +211,8 @@ public class MainActivity extends Activity {
             try(PDDocument doc=PDDocument.load(pdf)){
                 PDFRenderer renderer=new PDFRenderer(doc);
                 PDFTextStripper stripper=new PDFTextStripper();
-                TessBaseAPI tess=new TessBaseAPI();
-                File dir=new File(getFilesDir(),"ocr");File trained=new File(dir,"tessdata/fas.traineddata");
-                trained.getParentFile().mkdirs();
-                if(!trained.exists()){
-                    try(InputStream in=getAssets().open("tessdata/fas.traineddata");
-                        OutputStream out=new FileOutputStream(trained)){
-                        byte[] buf=new byte[8192];int n;while((n=in.read(buf))!=-1)out.write(buf,0,n);
-                    }
-                }
-                if(!tess.init(dir.getAbsolutePath(),"fas"))throw new IOException("مدل OCR فارسی بارگذاری نشد");
+                TessBaseAPI tess=null;
+                boolean ocrUnavailable=false;
                 StringBuilder sb=new StringBuilder();
                 try{
                     for(int p=0;p<doc.getNumberOfPages();p++){
@@ -230,15 +222,41 @@ public class MainActivity extends Activity {
                         boolean useOcr=extracted.length()<35 || extracted.indexOf('\uFFFD')>=0;
                         String page=extracted;
                         if(useOcr){
-                            Bitmap bitmap=renderer.renderImageWithDPI(p,180);
-                            tess.setImage(bitmap);page=tess.getUTF8Text();
-                            bitmap.recycle();tess.clear();
+                            if(tess==null && !ocrUnavailable){
+                                TessBaseAPI candidate=new TessBaseAPI();
+                                try{
+                                    File dir=new File(getFilesDir(),"ocr");
+                                    File trained=new File(dir,"tessdata/fas.traineddata");
+                                    trained.getParentFile().mkdirs();
+                                    if(!trained.exists() || trained.length()<1000000){
+                                        try(InputStream in=getAssets().open("tessdata/fas.traineddata");
+                                            OutputStream out=new FileOutputStream(trained,false)){
+                                            byte[] buf=new byte[8192];int n;
+                                            while((n=in.read(buf))!=-1)out.write(buf,0,n);
+                                        }
+                                    }
+                                    if(trained.length()<1000000 || !candidate.init(dir.getAbsolutePath(),"fas"))
+                                        throw new IOException("مدل OCR فارسی معتبر نیست");
+                                    tess=candidate;
+                                }catch(Exception ocrError){
+                                    candidate.end();
+                                    ocrUnavailable=true;
+                                    runOnUiThread(()->status.setText("مدل OCR فارسی در برنامه بارگذاری نشد؛ صفحات متنی همچنان تبدیل می‌شوند."));
+                                }
+                            }
+                            if(tess!=null){
+                                Bitmap bitmap=renderer.renderImageWithDPI(p,180);
+                                try{tess.setImage(bitmap);page=tess.getUTF8Text();tess.clear();}
+                                finally{bitmap.recycle();}
+                            }else if(extracted.isEmpty()){
+                                page="[صفحه "+(p+1)+": برای تشخیص متن اسکن‌شده، مدل OCR فارسی لازم است]";
+                            }
                         }
                         sb.append(page==null?"":page).append("\n\n");
                         int current=p+1,total=doc.getNumberOfPages();
                         runOnUiThread(()->status.setText("صفحه "+current+" از "+total));
                     }
-                }finally{tess.end();}
+                }finally{if(tess!=null)tess.end();}
                 result=sb.toString();
             }
             String text=result;
