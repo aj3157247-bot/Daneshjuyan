@@ -47,9 +47,9 @@ tasks.register('downloadPersianOCR') {
                         while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count)
                     }
                 }
-                // The model is a binary file; this threshold rejects error pages and truncated downloads.
-                if (!temp.exists() || temp.length() < 500000) {
-                    throw new GradleException("Persian OCR model is too small (${temp.exists() ? temp.length() : 0} bytes)")
+                // The valid fas.traineddata file from tessdata_fast can be about 431 KB; use a conservative floor to reject tiny error pages.
+                if (!temp.exists() || temp.length() < 100000) {
+                    throw new GradleException("Persian OCR model download is invalid (${temp.exists() ? temp.length() : 0} bytes)")
                 }
                 java.nio.file.Files.move(temp.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
                 downloaded = true
