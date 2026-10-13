@@ -11,10 +11,16 @@ tasks.register('downloadPersianOCR') {
         def dest = file('src/main/assets/tessdata/fas.traineddata')
         if (!dest.exists() || dest.length() < 1000000) {
             dest.parentFile.mkdirs()
-            new URL('https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/fas.traineddata').withInputStream { input ->
-                dest.withOutputStream { output -> output << input }
-            }
+            def temp = file(dest.absolutePath + '.download')
+            try {
+                new URL('https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/fas.traineddata').withInputStream { input ->
+                    temp.withOutputStream { output -> output << input }
+                }
+                if (temp.length() < 1000000) throw new GradleException('Persian OCR model download incomplete')
+                java.nio.file.Files.move(temp.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            } finally { temp.delete() }
         }
+        if (dest.length() < 1000000) throw new GradleException('Missing or incomplete Persian OCR model')
     }
 }
 // Ensure the OCR model is present before Android packages assets into the APK.
