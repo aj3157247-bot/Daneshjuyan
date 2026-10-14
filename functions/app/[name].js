@@ -19,7 +19,7 @@ export async function onRequestGet({request,params}) {
   const app = Object.prototype.hasOwnProperty.call(APPS,name) ? APPS[name] : null;
   if (!app) return new Response('App not found', {status:404});
   const page = new URL(request.url);
-  const download = new URL(app.download,page.origin).href;
+  const download = new URL('/api/app-download/' + name,page.origin).href;
   const image = new URL(app.image,page.origin).href;
   const title = escapeHtml(app.title);
   const description = escapeHtml(app.description);
