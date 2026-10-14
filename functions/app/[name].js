@@ -3,7 +3,7 @@ const APPS = {
   abzar: {
     title: 'دانش‌ابزار | دانلود ابزارهای آفلاین فارسی',
     description: 'دانلود اپلیکیشن دانش‌ابزار برای اندروید؛ ابزارهای کاربردی فارسی و دسترسی به امکانات آموزشی دانشجویان.',
-    image: '/icons/daneshjuyan-2026-512.png',
+    image: '/icons/daneshabzar-share-512.png',
     download: 'https://github.com/aj3157247-bot/Daneshjuyan/releases/download/v1.0.0/DaneshAbzar-v1.0.0.apk'
   },
   daneshjuyan: {
