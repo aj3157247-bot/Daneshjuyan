@@ -207,12 +207,23 @@ renderAds('home', document.querySelector('.toolbar')?.parentElement);
 // Initial space listing loads after the student session is resolved.
 
 async function shareLink(url,title){
+ // Shorten links using the existing D1 database. Fall back to the original link if offline.
+ try {
+  const u=new URL(url);
+  if(u.origin===location.origin&&u.pathname==='/share'){
+   const r=await fetch('/api/short-links',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url})});
+   if(r.ok){const result=await r.json();if(result.url)url=result.url;}
+  }
+ }catch(e){console.warn('Short link unavailable; sharing original URL',e)}
  try { if(navigator.share){await navigator.share({title,url});return;} } catch(e){if(e.name==='AbortError')return;}
  try {await navigator.clipboard.writeText(url);alert('لینک کپی شد؛ حالا می‌توانی آن را برای دوستانت بفرستی.');}
  catch {window.prompt('لینک اشتراک‌گذاری را کپی کن:',url);}
 }
+// Preserve share parameters for delayed content navigation after shortening the address bar.
+const originalShareSearch=location.search;
+function sharedParams(){return new URLSearchParams(originalShareSearch)}
 function openSharedDestination(){
- const query=new URLSearchParams(location.search);
+ const query=sharedParams();
  if(query.get('community')==='1'){$('#communityTop')?.click();return;}
  const id=query.get('space'); if(!id)return;
  const item=(window.spaces||[]).find(x=>x.id===id);
@@ -231,7 +242,7 @@ function shareContent(kind,id,title){
  shareLink(u.href,title||'محتوای دانشجویان');
 }
 async function navigateSharedContent(){
- const q=new URLSearchParams(location.search);
+ const q=sharedParams();
  if(!currentItem||q.get('space')!==currentItem.id)return;
  const kind=q.get('item'),id=q.get('itemId');if(!id||!['note','file','post'].includes(kind))return;
  if(kind==='note'||kind==='file'){
@@ -265,3 +276,11 @@ document.getElementById('photoViewer').addEventListener('close',()=>{document.ge
 
 // Guide visitors to registration before downloading; server independently enforces this rule.
 document.addEventListener('click',async e=>{const a=e.target.closest('a.download-link');if(!a||currentStudent)return;e.preventDefault();await refreshStudent();if(!currentStudent){openAccount();$('#accountGreeting').textContent='برای دانلود فایل‌ها و عکس‌ها ابتدا ثبت‌نام کن یا وارد حساب خود شو.';}else location.href=a.href;},true);
+
+// The original query stays in memory for navigation; the visible URL remains short.
+window.addEventListener('load',()=>{
+ const short=sessionStorage.getItem('dj_short_destination');
+ if(short&&originalShareSearch){sessionStorage.removeItem('dj_short_destination');
+  setTimeout(()=>{if(location.pathname==='/'&&location.search===originalShareSearch)history.replaceState(history.state,'',short)},3500);
+ }
+});
