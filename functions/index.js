@@ -38,7 +38,7 @@ export async function onRequest({request,env}) {
       }
     } catch (e) { /* Keep general metadata when DB is unavailable. */ }
   }
-  const image = new URL('/logo.svg',url.origin).href;
+  const image = new URL('/icons/daneshjuyan-header-2026.png',url.origin).href;
   const tags = `<meta property="og:type" content="website"><meta property="og:site_name" content="دانشجویان"><meta property="og:title" content="${escape(title)}"><meta property="og:description" content="${escape(description)}"><meta property="og:url" content="${escape(url.href)}"><meta property="og:image" content="${escape(image)}"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="${escape(title)}"><meta name="twitter:description" content="${escape(description)}">`;
   const html = (await response.text()).replace(/<title>[^<]*<\/title>/i, `<title>${escape(title)}</title>`).replace(/<meta name="description"[^>]*>/i, `<meta name="description" content="${escape(description)}">`).replace('</head>',`${tags}</head>`);
   const headers = new Headers(response.headers);
